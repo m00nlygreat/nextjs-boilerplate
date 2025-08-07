@@ -45,10 +45,8 @@ export default function Home() {
           </button>
         </form>
         {report && (
-          <div className="rounded-2xl bg-white/80 p-6 shadow-lg backdrop-blur">
-            <ReactMarkdown className="whitespace-pre-wrap leading-relaxed">
-              {report}
-            </ReactMarkdown>
+          <div className="rounded-2xl bg-white/80 p-6 shadow-lg backdrop-blur whitespace-pre-wrap leading-relaxed">
+            <ReactMarkdown>{report}</ReactMarkdown>
           </div>
         )}
       </div>
