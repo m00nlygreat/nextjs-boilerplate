@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 
 export default function Home() {
@@ -25,7 +26,10 @@ export default function Home() {
   return (
     <main className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
-        <h1 className="text-3xl font-semibold text-center">사주 분석</h1>
+        <div className="flex flex-col items-center space-y-2">
+          <Image src="/fortune.svg" alt="사주 아이콘" width={64} height={64} />
+          <h1 className="text-3xl font-semibold text-center">사주 분석</h1>
+        </div>
         <form
           onSubmit={handleSubmit}
           className="space-y-4 rounded-2xl bg-white/80 p-6 shadow-lg backdrop-blur"
@@ -57,7 +61,7 @@ export default function Home() {
           />
           <button
             type="submit"
-            className="w-full rounded-lg bg-blue-600 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 py-2 font-medium text-white transition-colors hover:from-blue-600 hover:to-purple-700 disabled:opacity-50"
             disabled={loading}
           >
             {loading ? "분석 중..." : "분석하기"}
