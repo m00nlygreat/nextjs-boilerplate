@@ -30,6 +30,25 @@ export default function Home() {
           onSubmit={handleSubmit}
           className="space-y-4 rounded-2xl bg-white/80 p-6 shadow-lg backdrop-blur"
         >
+          <div className="space-y-2 rounded-md bg-blue-50 p-4 text-sm text-blue-900">
+            <p>
+              사주 분석을 하기 위해서는 <strong>만세력</strong>이 필요해요. 만세력은 내 생년월일시를 입력하면 알 수 있습니다.{' '}
+              <a
+                href="https://pro.forceteller.com/profile/edit"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                포스텔러 만세력
+              </a>
+              에서 내 만세력을 구해서 입력해주세요
+            </p>
+            <img
+              src="/chatgpt-4pillars.png"
+              alt="만세력 예시"
+              className="w-full rounded-md"
+            />
+          </div>
           <input
             className="w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={birthInfo}
