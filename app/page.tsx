@@ -23,27 +23,35 @@ export default function Home() {
   };
 
   return (
-    <main className="max-w-xl mx-auto p-4 flex flex-col gap-4">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-        <input
-          className="border p-2"
-          value={birthInfo}
-          onChange={(e) => setBirthInfo(e.target.value)}
-          placeholder="정묘년 계축월 신사일 계사시 / 남성"
-        />
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-          disabled={loading}
+    <main className="flex min-h-screen items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-6">
+        <h1 className="text-3xl font-semibold text-center">사주 분석</h1>
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 rounded-2xl bg-white/80 p-6 shadow-lg backdrop-blur"
         >
-          {loading ? "분석 중..." : "분석하기"}
-        </button>
-      </form>
-      {report && (
-        <div className="border p-4 rounded bg-gray-50">
-          <ReactMarkdown>{report}</ReactMarkdown>
-        </div>
-      )}
+          <input
+            className="w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={birthInfo}
+            onChange={(e) => setBirthInfo(e.target.value)}
+            placeholder="정묘년 계축월 신사일 계사시 / 남성"
+          />
+          <button
+            type="submit"
+            className="w-full rounded-lg bg-blue-600 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            disabled={loading}
+          >
+            {loading ? "분석 중..." : "분석하기"}
+          </button>
+        </form>
+        {report && (
+          <div className="rounded-2xl bg-white/80 p-6 shadow-lg backdrop-blur">
+            <ReactMarkdown className="whitespace-pre-wrap leading-relaxed">
+              {report}
+            </ReactMarkdown>
+          </div>
+        )}
+      </div>
     </main>
   );
 }
