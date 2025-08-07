@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 
 export default function Home() {
   const [birthInfo, setBirthInfo] = useState("");
@@ -39,8 +40,8 @@ export default function Home() {
         </button>
       </form>
       {report && (
-        <div className="whitespace-pre-wrap border p-4 rounded bg-gray-50">
-          {report}
+        <div className="border p-4 rounded bg-gray-50">
+          <ReactMarkdown>{report}</ReactMarkdown>
         </div>
       )}
     </main>
