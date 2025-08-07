@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 
 export default function Home() {
   const [birthInfo, setBirthInfo] = useState("");
@@ -41,7 +43,7 @@ export default function Home() {
       </form>
       {report && (
         <div className="border p-4 rounded bg-gray-50">
-          <ReactMarkdown>{report}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{report}</ReactMarkdown>
         </div>
       )}
     </main>
