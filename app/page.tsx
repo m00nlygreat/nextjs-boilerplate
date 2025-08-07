@@ -50,7 +50,7 @@ export default function Home() {
               에서 내 만세력을 구해서 입력해주세요
             </p>
             <img
-              src="/chatgpt-4pillars.png"
+              src="/chatgpt-5pillars.png"
               alt="만세력 예시"
               className="w-full rounded-md"
             />
