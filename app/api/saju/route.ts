@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     ];
     const response = await client.responses.create({
       model: "gpt-5",
-      messages,
+      input: messages,
     } as any);
 
     const output = response.output_text;
