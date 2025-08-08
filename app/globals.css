@@ -40,3 +40,9 @@ body {
   background-size: 200% 200%;
   animation: gradient 8s ease infinite;
 }
+input[type="date"],
+input[type="time"] {
+  width: 100%;
+  min-width: 0;
+  appearance: none;
+}
