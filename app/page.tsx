@@ -17,6 +17,7 @@ export default function Home() {
     );
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState("");
+  const [catMode, setCatMode] = useState(false);
 
   useEffect(() => {
     if (birthDate && birthTime && gender) {
@@ -38,7 +39,7 @@ export default function Home() {
     const res = await fetch("/api/saju", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ birthInfo }),
+      body: JSON.stringify({ birthInfo, catMode }),
     });
     const data = await res.json();
     setReport(data.result || data.error);
@@ -71,6 +72,15 @@ export default function Home() {
             <option value="남성">남성</option>
             <option value="여성">여성</option>
           </select>
+        </div>
+        <div className="flex justify-center">
+          <button
+            onClick={() => setCatMode((prev) => !prev)}
+            aria-pressed={catMode}
+            className={`text-4xl transition-transform duration-200 ${catMode ? "scale-125 rotate-6 drop-shadow-[0_0_6px_#facc15]" : "opacity-50"}`}
+          >
+            😺
+          </button>
         </div>
         {manse && (
           <div className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30 text-center">

@@ -3,7 +3,7 @@ import OpenAI from "openai";
 
 export async function POST(req: Request) {
   try {
-    const { birthInfo } = await req.json();
+    const { birthInfo, catMode } = await req.json();
     if (!birthInfo) {
       return NextResponse.json({ error: "Missing birthInfo" }, { status: 400 });
     }
@@ -18,11 +18,24 @@ export async function POST(req: Request) {
     }
 
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const prompt = `당신은 전문 사주 명리학자입니다. 다음 사주팔자를 분석해 주세요: ${birthInfo}\n웹 검색 결과:\n${snippets}`;
+    const messages = [
+      {
+        role: "system",
+        content:
+          "당신은 전문 사주 명리학자입니다." +
+          (catMode
+            ? " 어려운 사주 용어 대신 쉽고 친절한 설명과 함께 '냥'의 어미를 추가하여 답변하세요. '너는 푸른 숲 속의 고요한 호수의 기운을 가졌다냥'과 같은 표현을 사용합니다."
+            : ""),
+      },
+      {
+        role: "user",
+        content: `다음 사주팔자를 분석해 주세요: ${birthInfo}\n웹 검색 결과:\n${snippets}`,
+      },
+    ];
     const response = await client.responses.create({
       model: "gpt-5",
-      input: prompt,
-    });
+      input: messages,
+    } as any);
 
     const output = response.output_text;
     return NextResponse.json({ result: output });
