@@ -77,9 +77,17 @@ export default function Home() {
           <button
             onClick={() => setCatMode((prev) => !prev)}
             aria-pressed={catMode}
-            className={`text-4xl transition-transform duration-200 ${catMode ? "scale-125 rotate-6 drop-shadow-[0_0_6px_#facc15]" : "opacity-50"}`}
+            className="relative flex h-10 w-10 items-center justify-center overflow-visible"
           >
-            😺
+            <span
+              className={`text-2xl transition-transform ${
+                catMode
+                  ? "scale-150 rotate-12 drop-shadow-[0_0_6px_rgba(255,255,255,0.8)]"
+                  : ""
+              }`}
+            >
+              😺
+            </span>
           </button>
         </div>
         {manse && (
