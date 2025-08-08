@@ -73,27 +73,33 @@ export default function Home() {
             <option value="여성">여성</option>
           </select>
         </div>
-        <div className="flex justify-center">
-          <button
-            onClick={() => setCatMode((prev) => !prev)}
-            aria-pressed={catMode}
-            className={`text-4xl transition-transform duration-200 ${catMode ? "scale-125 rotate-6 drop-shadow-[0_0_6px_#facc15]" : "opacity-50"}`}
-          >
-            😺
-          </button>
-        </div>
         {manse && (
           <div className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30 text-center">
             <ManseDisplay manse={manse} gender={gender} />
           </div>
         )}
-        <button
-          onClick={handleConfirm}
-          className="w-full rounded-lg bg-gradient-to-r from-fuchsia-500 via-rose-500 to-amber-400 py-2 font-medium text-white shadow-lg transition-colors hover:from-fuchsia-600 hover:via-rose-600 hover:to-amber-500 disabled:opacity-50"
-          disabled={!manse || loading}
-        >
-          {loading ? "분석 중..." : "분석"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setCatMode((prev) => !prev)}
+            aria-pressed={catMode}
+            className={`flex items-center gap-1 rounded-lg border px-3 py-2 text-sm transition-colors ${
+              catMode
+                ? "border-fuchsia-400 bg-fuchsia-600/30 text-fuchsia-100"
+                : "border-white/50 text-white hover:bg-white/10"
+            }`}
+          >
+            <span>{catMode ? "😻" : "😺"}</span>
+            <span>냥냥체 인젝션</span>
+          </button>
+          <button
+            onClick={handleConfirm}
+            className="flex-1 rounded-lg bg-gradient-to-r from-fuchsia-500 via-rose-500 to-amber-400 py-2 font-medium text-white shadow-lg transition-colors hover:from-fuchsia-600 hover:via-rose-600 hover:to-amber-500 disabled:opacity-50"
+            disabled={!manse || loading}
+          >
+            {loading ? "분석 중..." : "분석"}
+          </button>
+        </div>
         {report && (
           <div className="rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30 whitespace-pre-wrap leading-relaxed">
             <ReactMarkdown>{report}</ReactMarkdown>
