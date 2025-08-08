@@ -81,7 +81,9 @@ export default function Home() {
               className="w-full rounded-lg bg-gradient-to-r from-fuchsia-500 via-rose-500 to-amber-400 py-2 font-medium text-white shadow-lg transition-colors hover:from-fuchsia-600 hover:via-rose-600 hover:to-amber-500 disabled:opacity-50"
               disabled={loading}
             >
-              {loading ? "분석 중..." : "확인"}
+                {loading
+                  ? "상세한 분석을 위해 시간이 조금 소요됩니다."
+                  : "확인"}
             </button>
           </div>
         )}
