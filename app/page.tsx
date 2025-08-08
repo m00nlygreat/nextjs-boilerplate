@@ -83,13 +83,13 @@ export default function Home() {
             type="button"
             onClick={() => setCatMode((prev) => !prev)}
             aria-pressed={catMode}
-            className={`flex items-center gap-1 rounded-lg border px-3 py-2 text-sm text-white transition-colors ${
+            className={`flex items-center gap-1 rounded-lg border px-3 py-2 text-sm transition-colors ${
               catMode
-                ? "border-fuchsia-400 bg-fuchsia-600/20"
-                : "border-white/50 hover:bg-white/10"
+                ? "border-fuchsia-400 bg-fuchsia-600/30 text-fuchsia-100"
+                : "border-white/50 text-white hover:bg-white/10"
             }`}
           >
-            <span>😺</span>
+            <span>{catMode ? "😻" : "😺"}</span>
             <span>냥냥체 인젝션</span>
           </button>
           <button
