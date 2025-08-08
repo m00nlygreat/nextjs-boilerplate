@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import DateTimePicker from "@/app/components/DateTimePicker";
+import ManseDisplay from "@/app/components/ManseDisplay";
 import { manseCalc } from "@/lib/manse";
 
 export default function Home() {
@@ -73,9 +74,7 @@ export default function Home() {
         </div>
         {manse && (
           <div className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30 text-center">
-            <p>
-              {manse.year}년 {manse.month}월 {manse.day}일 {manse.hour}시 ({gender})
-            </p>
+            <ManseDisplay manse={manse} gender={gender} />
           </div>
         )}
         <button
