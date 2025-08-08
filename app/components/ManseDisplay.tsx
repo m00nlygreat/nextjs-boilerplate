@@ -33,18 +33,17 @@ export default function ManseDisplay({ manse, gender }: ManseDisplayProps) {
           const branch = part.value.charAt(1);
           const [topColor, bottomColor] = colors[idx];
           return (
-            <div key={part.label} className="flex flex-col items-stretch text-center">
-              <div
-                className={`${topColor} w-full rounded-md px-2 py-3 text-3xl sm:text-4xl font-bold`}
-              >
+            <div
+              key={part.label}
+              className="flex flex-col items-stretch text-center space-y-1"
+            >
+              <div className={`${topColor} w-full rounded-md p-2 text-3xl sm:text-4xl font-bold aspect-square flex items-center justify-center`}>
                 {stem}
               </div>
-              <div
-                className={`${bottomColor} w-full rounded-md px-2 py-3 text-3xl sm:text-4xl font-bold`}
-              >
+              <div className={`${bottomColor} w-full rounded-md p-2 text-3xl sm:text-4xl font-bold aspect-square flex items-center justify-center`}>
                 {branch}
               </div>
-              <span className="mt-1 text-xs text-gray-500 sm:text-sm">{part.label}</span>
+              <span className="text-xs text-gray-500 sm:text-sm">{part.label}</span>
             </div>
           );
         })}
