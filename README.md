@@ -29,3 +29,18 @@ To learn more about Next.js, take a look at the following resources:
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## DateTimePicker Component
+
+A custom Korean date picker is available for entering dates as `yyyy-mm-dd` or typing `20250808`. It also provides a calendar popup that stays in sync with the input.
+
+```tsx
+import DateTimePicker from "@/app/components/DateTimePicker";
+import { useState } from "react";
+
+function Example() {
+  const [date, setDate] = useState("");
+  return <DateTimePicker value={date} onChange={setDate} />;
+}
+```
+
