@@ -74,13 +74,18 @@ export default function Home() {
           </select>
         </div>
         <div className="flex justify-center">
-          <button
-            onClick={() => setCatMode((prev) => !prev)}
-            aria-pressed={catMode}
-            className={`text-4xl transition-transform duration-200 ${catMode ? "scale-125 rotate-6 drop-shadow-[0_0_6px_#facc15]" : "opacity-50"}`}
-          >
-            😺
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCatMode((prev) => !prev)}
+              aria-pressed={catMode}
+              aria-label="냥냥체 인젝션"
+              title="냥냥체 인젝션"
+              className={`text-4xl transition-transform duration-200 ${catMode ? "scale-125 rotate-6 drop-shadow-[0_0_6px_#facc15]" : "opacity-50"}`}
+            >
+              😺
+            </button>
+            <span className="text-xs text-white/80">냥냥체 인젝션</span>
+          </div>
         </div>
         {manse && (
           <div className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30 text-center">
