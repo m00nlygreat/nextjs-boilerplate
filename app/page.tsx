@@ -4,9 +4,16 @@ import { useState } from "react";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import { manseCalc } from "@/lib/manse";
+import DatePicker, { registerLocale } from "react-datepicker";
+import { ko } from "date-fns/locale";
+import { format } from "date-fns";
+import "react-datepicker/dist/react-datepicker.css";
+
+registerLocale("ko", ko);
 
 export default function Home() {
   const [birthDate, setBirthDate] = useState("");
+  const [birthDateObj, setBirthDateObj] = useState<Date | null>(null);
   const [birthTime, setBirthTime] = useState("");
   const [manse, setManse] =
     useState<{ year: string; month: string; day: string; hour: string } | null>(
@@ -18,7 +25,7 @@ export default function Home() {
   const handleCalculate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!birthDate || !birthTime) return;
-    const [y, m, d] = birthDate.split("-").map(Number);
+    const [y, m, d] = birthDate.split("/").map(Number);
     const [hh, mm] = birthTime.split(":").map(Number);
     const result = manseCalc(y, m, d, hh, mm);
     setManse(result);
@@ -52,11 +59,19 @@ export default function Home() {
           onSubmit={handleCalculate}
           className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30"
         >
-          <input
-            type="date"
+          <DatePicker
+            selected={birthDateObj}
+            onChange={(date: Date | null) => {
+              setBirthDateObj(date);
+              if (date) {
+                setBirthDate(format(date, "yyyy/MM/dd"));
+              } else {
+                setBirthDate("");
+              }
+            }}
+            dateFormat="yyyy/MM/dd"
+            locale="ko"
             className="w-full rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-            value={birthDate}
-            onChange={(e) => setBirthDate(e.target.value)}
           />
           <input
             type="time"
