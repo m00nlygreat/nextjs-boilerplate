@@ -88,7 +88,7 @@ export default function Home() {
             <span
               className={`text-lg transition-all ${
                 catMode
-                  ? "scale-125 rotate-6 drop-shadow-[0_0_4px_#fff]"
+                  ? "scale-150 rotate-6 drop-shadow-[0_0_4px_#fff]"
                   : "opacity-50"
               }`}
             >
