@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import { manseCalc } from "@/lib/manse";
+import DateTimePicker from "@/components/DateTimePicker";
 
 export default function Home() {
   const [birthDate, setBirthDate] = useState("");
@@ -52,17 +53,11 @@ export default function Home() {
           onSubmit={handleCalculate}
           className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30"
         >
-          <input
-            type="date"
-            className="w-full rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-            value={birthDate}
-            onChange={(e) => setBirthDate(e.target.value)}
-          />
-          <input
-            type="time"
-            className="w-full rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-            value={birthTime}
-            onChange={(e) => setBirthTime(e.target.value)}
+          <DateTimePicker
+            date={birthDate}
+            time={birthTime}
+            onDateChange={setBirthDate}
+            onTimeChange={setBirthTime}
           />
           <button
             type="submit"
