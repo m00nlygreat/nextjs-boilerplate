@@ -85,7 +85,15 @@ export default function Home() {
                 : "border-white/20 bg-white/10 hover:bg-white/20"
             }`}
           >
-            <span className={`text-lg transition-opacity ${catMode ? "" : "opacity-50"}`}>😺</span>
+            <span
+              className={`text-lg transition-all ${
+                catMode
+                  ? "scale-125 rotate-6 drop-shadow-[0_0_4px_#fff]"
+                  : "opacity-50"
+              }`}
+            >
+              😺
+            </span>
             <span>냥냥체 인젝션</span>
           </button>
         </div>
