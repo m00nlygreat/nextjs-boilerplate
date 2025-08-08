@@ -9,6 +9,7 @@ import { manseCalc } from "@/lib/manse";
 export default function Home() {
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
+  const [gender, setGender] = useState("");
   const [manse, setManse] =
     useState<{ year: string; month: string; day: string; hour: string } | null>(
       null
@@ -18,7 +19,7 @@ export default function Home() {
 
   const handleCalculate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!birthDate || !birthTime) return;
+    if (!birthDate || !birthTime || !gender) return;
     const [y, m, d] = birthDate.split("-").map(Number);
     const [hh, mm] = birthTime.split(":").map(Number);
     const result = manseCalc(y, m, d, hh, mm);
@@ -27,9 +28,9 @@ export default function Home() {
   };
 
   const handleConfirm = async () => {
-    if (!manse) return;
+    if (!manse || !gender) return;
     setLoading(true);
-    const birthInfo = `${manse.year}년 ${manse.month}월 ${manse.day}일 ${manse.hour}시`;
+    const birthInfo = `${manse.year}년 ${manse.month}월 ${manse.day}일 ${manse.hour}시, 성별: ${gender}`;
     const res = await fetch("/api/saju", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -60,6 +61,15 @@ export default function Home() {
             value={birthTime}
             onChange={(e) => setBirthTime(e.target.value)}
           />
+          <select
+            className="w-full rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+          >
+            <option value="">성별을 선택하세요</option>
+            <option value="남성">남성</option>
+            <option value="여성">여성</option>
+          </select>
           <button
             type="submit"
             className="w-full rounded-lg bg-gradient-to-r from-fuchsia-500 via-rose-500 to-amber-400 py-2 font-medium text-white shadow-lg transition-colors hover:from-fuchsia-600 hover:via-rose-600 hover:to-amber-500"
@@ -70,7 +80,7 @@ export default function Home() {
         {manse && (
           <div className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30 text-center">
             <p>
-              {manse.year}년 {manse.month}월 {manse.day}일 {manse.hour}시
+              {manse.year}년 {manse.month}월 {manse.day}일 {manse.hour}시 ({gender})
             </p>
             <button
               onClick={handleConfirm}
