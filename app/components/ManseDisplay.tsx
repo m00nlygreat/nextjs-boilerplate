@@ -19,11 +19,11 @@ export default function ManseDisplay({ manse, gender }: ManseDisplayProps) {
   ];
 
   const elementColorMap: Record<string, string> = {
-    목: "bg-green-500 text-white",
-    화: "bg-red-500 text-white",
-    토: "bg-yellow-300 text-black",
-    금: "bg-white text-black",
-    수: "bg-blue-800 text-white",
+    목: "bg-emerald-400 text-white",
+    화: "bg-rose-400 text-white",
+    토: "bg-amber-200 text-stone-800",
+    금: "bg-slate-100 text-gray-700",
+    수: "bg-sky-500 text-white",
   };
 
   function getElement(char: string): string | undefined {
