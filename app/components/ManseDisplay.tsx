@@ -12,10 +12,10 @@ interface ManseDisplayProps {
 
 export default function ManseDisplay({ manse, gender }: ManseDisplayProps) {
   const parts = [
-    { label: "년", value: manse.year },
-    { label: "월", value: manse.month },
-    { label: "일", value: manse.day },
     { label: "시", value: manse.hour },
+    { label: "일", value: manse.day },
+    { label: "월", value: manse.month },
+    { label: "년", value: manse.year },
   ];
 
   const elementColorMap: Record<string, string> = {
