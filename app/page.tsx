@@ -34,7 +34,7 @@ export default function Home() {
   const handleConfirm = async () => {
     if (!manse || !gender) return;
     setLoading(true);
-    const birthInfo = `${manse.year}년 ${manse.month}월 ${manse.day}일 ${manse.hour}시, 성별: ${gender}`;
+    const birthInfo = `${manse.hour}시 ${manse.day}일 ${manse.month}월 ${manse.year}년, 성별: ${gender}`;
     const res = await fetch("/api/saju", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
