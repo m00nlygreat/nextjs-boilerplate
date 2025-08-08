@@ -77,9 +77,16 @@ export default function Home() {
           <button
             onClick={() => setCatMode((prev) => !prev)}
             aria-pressed={catMode}
-            className={`text-4xl transition-transform duration-200 ${catMode ? "scale-125 rotate-6 drop-shadow-[0_0_6px_#facc15]" : "opacity-50"}`}
+            aria-label="냥냥체 인젝션"
+            title="냥냥체 인젝션"
+            className={`flex items-center gap-1 rounded-md border px-3 py-1 text-xs text-white/80 transition-colors ${
+              catMode
+                ? "border-white/40 bg-white/20"
+                : "border-white/20 bg-white/10 hover:bg-white/20"
+            }`}
           >
-            😺
+            <span className={`text-lg transition-opacity ${catMode ? "" : "opacity-50"}`}>😺</span>
+            <span>냥냥체 인젝션</span>
           </button>
         </div>
         {manse && (
