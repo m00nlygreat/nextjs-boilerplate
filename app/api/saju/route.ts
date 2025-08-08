@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const prompt = `당신은 전문 사주 명리학자입니다. 다음 사주팔자를 분석해 주세요: ${birthInfo}\n웹 검색 결과:\n${snippets}`;
     const response = await client.responses.create({
-      model: "gpt-4.1-mini",
+      model: "gpt-5",
       input: prompt,
     });
 
