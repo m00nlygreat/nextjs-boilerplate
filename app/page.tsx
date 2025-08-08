@@ -5,6 +5,7 @@ import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import DateTimePicker from "@/app/components/DateTimePicker";
 import ManseDisplay from "@/app/components/ManseDisplay";
+import CatRain from "@/app/components/CatRain";
 import { manseCalc } from "@/lib/manse";
 
 export default function Home() {
@@ -48,6 +49,7 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen items-center justify-center p-4 text-white">
+      <CatRain active={catMode} />
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center space-y-2">
           <Image src="/fortune.svg" alt="사주 아이콘" width={64} height={64} />

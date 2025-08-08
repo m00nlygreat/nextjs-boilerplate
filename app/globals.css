@@ -46,3 +46,21 @@ input[type="time"] {
   min-width: 0;
   appearance: none;
 }
+
+@keyframes cat-fall {
+  0% {
+    transform: translate(0, -10%) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--drift, 0), 110vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.cat-fall {
+  animation-name: cat-fall;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
