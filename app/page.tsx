@@ -57,7 +57,7 @@ export default function Home() {
           <DateTimePicker value={birthDate} onChange={setBirthDate} />
           <input
             type="time"
-            className="w-full rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+            className="w-full min-w-0 max-w-full rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
             value={birthTime}
             onChange={(e) => setBirthTime(e.target.value)}
           />
