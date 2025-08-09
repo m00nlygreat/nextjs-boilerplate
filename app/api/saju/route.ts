@@ -3,7 +3,7 @@ import OpenAI from "openai";
 
 export async function POST(req: Request) {
   try {
-    const { birthInfo, catMode } = await req.json();
+    const { birthInfo, catMode, question } = await req.json();
     if (!birthInfo) {
       return NextResponse.json({ error: "Missing birthInfo" }, { status: 400 });
     }
@@ -32,6 +32,11 @@ export async function POST(req: Request) {
         content: `${birthInfo}\n웹 검색 결과:\n${snippets}`,
       },
     ];
+
+    if (question) {
+      messages.push({ role: "user", content: question });
+    }
+
     const response = await client.responses.create({
       model: "gpt-5",
       input: messages,
