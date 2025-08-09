@@ -42,7 +42,7 @@ body {
 }
 
 .cat-mode-bg {
-  @apply bg-gradient-to-br from-pink-300 via-pink-200 to-yellow-200;
+  @apply bg-gradient-to-br from-pink-800 via-pink-300 to-yellow-400;
 }
 input[type="date"],
 input[type="time"] {
