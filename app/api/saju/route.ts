@@ -35,6 +35,14 @@ export async function POST(req: Request) {
     const response = await client.responses.create({
       model: "gpt-5",
       input: messages,
+      guard: {
+        schema: {
+          type: "object",
+          properties: { is_injection: { type: "boolean" } },
+          required: ["is_injection"],
+          additionalProperties: false,
+        },
+      },
     } as any);
 
     const output = response.output_text;
