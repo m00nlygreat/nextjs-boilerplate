@@ -19,6 +19,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState("");
   const [catMode, setCatMode] = useState(false);
+  const [question, setQuestion] = useState("");
 
   useEffect(() => {
     if (birthDate && birthTime && gender) {
@@ -51,7 +52,7 @@ export default function Home() {
     const res = await fetch("/api/saju", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ birthInfo, catMode }),
+      body: JSON.stringify({ birthInfo, catMode, question }),
     });
     const data = await res.json();
     setReport(data.result || data.error);
@@ -89,6 +90,13 @@ export default function Home() {
         {manse && (
           <div className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30 text-center">
             <ManseDisplay manse={manse} gender={gender} />
+            <input
+              type="text"
+              className="block w-full rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+              placeholder="추가 궁금한 내용을 입력하세요"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+            />
           </div>
         )}
         <div className="flex gap-2">
