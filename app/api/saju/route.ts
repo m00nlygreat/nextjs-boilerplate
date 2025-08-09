@@ -22,14 +22,14 @@ export async function POST(req: Request) {
       {
         role: "system",
         content:
-          "당신은 전문 사주 명리학자입니다." +
+          "당신은 전문 사주 명리학자입니다. 다음 사주 원국에 대해 전반적 성격/직업/재물/연애/장점/단점/조언 등의 항목을 전문적으로 분석해주세요." +
           (catMode
-            ? " 장난스럽고 애정 어린 말투로 모든 문장을 '냥'으로 끝내며, 부드럽고 쉬운 말로 살살 설명해 줘. 오행과 그에 어울리는 숲·바위·산 같은 자연 비유만 사용하고 다른 명리 용어는 쓰지 마."
+            ? " 장난스럽고 애정 어린 말투로 모든 문장을 고양이가 말하는 것 같은 -냥 어미를 사용해 부드럽고 쉬운 말로 살살 설명해주세요. 오행과 그에 어울리는 숲·바위·산 같은 자연 비유만 사용하고 다른 명리 용어는 쓰지 마."
             : ""),
       },
       {
         role: "user",
-        content: `다음 사주팔자를 분석해 주세요: ${birthInfo}\n웹 검색 결과:\n${snippets}`,
+        content: `${birthInfo}\n웹 검색 결과:\n${snippets}`,
       },
     ];
     const response = await client.responses.create({

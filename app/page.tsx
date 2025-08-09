@@ -54,7 +54,7 @@ export default function Home() {
         <div className="flex flex-col items-center space-y-2">
           <Image src="/fortune.svg" alt="사주 아이콘" width={64} height={64} />
           <h1 className="text-3xl font-extrabold text-center bg-gradient-to-r from-yellow-200 via-pink-200 to-fuchsia-300 bg-clip-text text-transparent drop-shadow">
-            사주 분석
+            꽤 잘맞는 AI 사주 분석
           </h1>
         </div>
         <div className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30">
@@ -108,7 +108,7 @@ export default function Home() {
             className="flex-1 rounded-lg bg-gradient-to-r from-fuchsia-500 via-rose-500 to-amber-400 py-2 font-medium text-white shadow-lg transition-colors hover:from-fuchsia-600 hover:via-rose-600 hover:to-amber-500 disabled:opacity-50"
             disabled={!manse || loading}
           >
-            {loading ? "분석 중..." : "분석"}
+            {loading ? "분석 중... 좀 시간이 걸립니다" : "분석"}
           </button>
         </div>
         {report && (
