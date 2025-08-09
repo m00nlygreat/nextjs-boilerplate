@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased min-h-screen bg-gradient-to-br from-purple-900 via-blue-800 via-fuchsia-700 via-pink-600 to-amber-500 animate-gradient text-white">
+      <body className="antialiased min-h-screen bg-gradient-to-br from-pink-500 via-rose-900 via-purple-800 via-amber-700 to-yellow-600 animate-gradient text-white">
         {children}
       </body>
     </html>

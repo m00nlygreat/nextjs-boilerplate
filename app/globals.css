@@ -27,9 +27,10 @@ body {
 
 body::before {
   content: "";
-  @apply absolute inset-0 bg-gradient-to-br from-pink-900 via-rose-900 via-purple-800 via-amber-700 to-yellow-600 opacity-0 transition-opacity duration-700 pointer-events-none;
+  @apply absolute inset-0 bg-gradient-to-br from-pink-500 via-blue-800 via-fuchsia-700 via-pink-600 to-amber-500 opacity-0 transition-opacity duration-700 pointer-events-none;
   z-index: -1;
-  background-size: 300% 300%;
+  
+  background-size: 400% 400%;
   animation: gradient 6.4s linear infinite;
 }
 
@@ -56,7 +57,7 @@ body.cat-mode-bg::before {
 }
 
 .animate-gradient {
-  background-size: 300% 300%;
+  background-size: 400% 400%;
   animation: gradient 12.8s linear infinite;
 }
 
