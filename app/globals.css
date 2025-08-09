@@ -29,8 +29,8 @@ body::before {
   content: "";
   @apply absolute inset-0 bg-gradient-to-br from-pink-900 via-rose-900 via-purple-800 via-amber-700 to-yellow-600 opacity-0 transition-opacity duration-700 pointer-events-none;
   z-index: -1;
-  background-size: 300% 300%;
-  animation: gradient 4s linear infinite;
+  background-size: 200% 200%;
+  animation: gradient 8s linear infinite;
 }
 
 body.cat-mode-bg::before {
@@ -41,22 +41,13 @@ body.cat-mode-bg::before {
   0% {
     background-position: 0% 50%;
   }
-  25% {
-    background-position: 50% 100%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  75% {
-    background-position: 50% 0%;
-  }
   100% {
-    background-position: 0% 50%;
+    background-position: 200% 50%;
   }
 }
 
 .animate-gradient {
-  background-size: 300% 300%;
+  background-size: 200% 200%;
   animation: gradient 8s linear infinite;
 }
 
