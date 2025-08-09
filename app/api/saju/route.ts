@@ -18,6 +18,18 @@ export async function POST(req: Request) {
     }
 
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    let flagged = false;
+    if (question?.trim()) {
+      const evalRes = await client.responses.create({
+        model: "gpt-4.1-mini",
+        input: [{ role: "user", content: question }],
+        evaluations: [{ name: "prompt_injection" }],
+      });
+      flagged = evalRes.evaluations?.some(
+        (e) => e.name === "prompt_injection" && e.score === "fail",
+      );
+    }
+    const safeQuestion = flagged ? "" : question;
     const messages = [
       {
         role: "system",
@@ -29,7 +41,7 @@ export async function POST(req: Request) {
       },
       {
         role: "user",
-        content: `${birthInfo}\n웹 검색 결과:\n${snippets}\n추가 질문: ${question}`,
+        content: `${birthInfo}\n웹 검색 결과:\n${snippets}\n추가 질문: ${safeQuestion}`,
       },
     ];
     const response = await client.responses.create({
