@@ -98,7 +98,7 @@ export default function Home() {
             className="w-full rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
             value={extraQuestion}
             onChange={(e) => setExtraQuestion(e.target.value)}
-            placeholder="추가 질문을 입력하세요"
+            placeholder={catMode ? "추가로 궁금한게 있으면 적어보라옹😽" : "혹시 추가로 궁금한 게 있으면 적어보세요"}
           />
         )}
         <div className="flex gap-2">
