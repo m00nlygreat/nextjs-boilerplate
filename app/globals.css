@@ -22,6 +22,19 @@
 body {
   background-color: var(--background);
   font-family: var(--font-sans);
+  position: relative;
+}
+
+body::before {
+  content: "";
+  @apply absolute inset-0 bg-gradient-to-br from-pink-900 via-rose-900 to-amber-700 opacity-0 transition-opacity duration-700 pointer-events-none;
+  z-index: -1;
+  background-size: 200% 200%;
+  animation: gradient 8s ease infinite;
+}
+
+body.cat-mode-bg::before {
+  @apply opacity-100;
 }
 
 @keyframes gradient {
@@ -41,9 +54,7 @@ body {
   animation: gradient 8s ease infinite;
 }
 
-.cat-mode-bg {
-  @apply bg-gradient-to-br from-pink-800 via-pink-300 to-yellow-400;
-}
+
 input[type="date"],
 input[type="time"] {
   width: 100%;
