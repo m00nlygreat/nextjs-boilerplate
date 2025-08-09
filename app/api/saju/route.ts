@@ -24,6 +24,7 @@ export async function POST(req: Request) {
         text: {
           format: {
             type: "json_schema",
+            name: "PromptInjection",
             json_schema: {
               name: "PromptInjection",
               schema: {
