@@ -33,6 +33,17 @@ export default function Home() {
     }
   }, [birthDate, birthTime, gender]);
 
+  useEffect(() => {
+    if (catMode) {
+      document.body.classList.add("cat-mode-bg");
+    } else {
+      document.body.classList.remove("cat-mode-bg");
+    }
+    return () => {
+      document.body.classList.remove("cat-mode-bg");
+    };
+  }, [catMode]);
+
   const handleConfirm = async () => {
     if (!manse || !gender) return;
     setLoading(true);

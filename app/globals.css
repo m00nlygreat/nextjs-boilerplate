@@ -40,6 +40,10 @@ body {
   background-size: 200% 200%;
   animation: gradient 8s ease infinite;
 }
+
+.cat-mode-bg {
+  @apply bg-gradient-to-br from-pink-300 via-pink-200 to-yellow-200;
+}
 input[type="date"],
 input[type="time"] {
   width: 100%;
