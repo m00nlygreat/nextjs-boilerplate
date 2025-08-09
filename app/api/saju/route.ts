@@ -21,16 +21,18 @@ export async function POST(req: Request) {
           },
           { role: "user", content: question },
         ],
-        response_format: {
-          type: "json_schema",
-          json_schema: {
-            name: "PromptInjection",
-            schema: {
-              type: "object",
-              properties: {
-                is_injection: { type: "boolean" },
+        text: {
+          format: {
+            type: "json_schema",
+            json_schema: {
+              name: "PromptInjection",
+              schema: {
+                type: "object",
+                properties: {
+                  is_injection: { type: "boolean" },
+                },
+                required: ["is_injection"],
               },
-              required: ["is_injection"],
             },
           },
         },
