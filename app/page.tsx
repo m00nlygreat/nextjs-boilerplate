@@ -19,6 +19,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState("");
   const [catMode, setCatMode] = useState(false);
+  const [question, setQuestion] = useState("");
 
   useEffect(() => {
     if (birthDate && birthTime && gender) {
@@ -48,14 +49,27 @@ export default function Home() {
     if (!manse || !gender) return;
     setLoading(true);
     const birthInfo = `${manse.hour}시 ${manse.day}일 ${manse.month}월 ${manse.year}년, 성별: ${gender}`;
+    const payload: {
+      birthInfo: string;
+      catMode: boolean;
+      question?: string;
+    } = { birthInfo, catMode };
+    if (question.trim()) {
+      payload.question = question;
+    }
     const res = await fetch("/api/saju", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ birthInfo, catMode }),
+      body: JSON.stringify(payload),
     });
     const data = await res.json();
     setReport(data.result || data.error);
     setLoading(false);
+    setQuestion("");
+  };
+
+  const handleQuestion = async () => {
+    await handleConfirm();
   };
 
   return (
@@ -123,9 +137,31 @@ export default function Home() {
           </button>
         </div>
         {report && (
-          <div className="rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30 whitespace-pre-wrap leading-relaxed">
-            <ReactMarkdown>{report}</ReactMarkdown>
-          </div>
+          <>
+            <div className="rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30 whitespace-pre-wrap leading-relaxed">
+              <ReactMarkdown>{report}</ReactMarkdown>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="추가로 궁금한 점을 물어보세요"
+                className="flex-1 rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+              />
+              <button
+                onClick={handleQuestion}
+                className="rounded-lg bg-gradient-to-r from-fuchsia-500 via-rose-500 to-amber-400 px-4 py-2 font-medium text-white shadow-lg transition-colors hover:from-fuchsia-600 hover:via-rose-600 hover:to-amber-500 disabled:opacity-50"
+                disabled={loading || !question.trim()}
+              >
+                {loading
+                  ? catMode
+                    ? "질문중이다냐~ 😺"
+                    : "질문 중..."
+                  : "질문"}
+              </button>
+            </div>
+          </>
         )}
       </div>
     </main>
