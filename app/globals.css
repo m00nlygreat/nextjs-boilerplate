@@ -29,6 +29,7 @@ body::before {
   content: "";
   @apply absolute inset-0 bg-gradient-to-br from-pink-500 via-blue-800 via-fuchsia-700 via-pink-600 to-amber-500 opacity-0 transition-opacity duration-700 pointer-events-none;
   z-index: -1;
+  
   background-size: 400% 400%;
   animation: gradient 6.4s linear infinite;
 }
