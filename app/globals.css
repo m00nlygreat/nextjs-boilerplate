@@ -57,7 +57,7 @@ body.cat-mode-bg::before {
 
 .animate-gradient {
   background-size: 300% 300%;
-  animation: gradient 4s linear infinite;
+  animation: gradient 8s linear infinite;
 }
 
 
