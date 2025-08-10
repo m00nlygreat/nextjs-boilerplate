@@ -195,7 +195,7 @@ export default function Home() {
                 ← 뒤로가기
               </button>
               <ManseDisplay manse={selectedResult.manse} gender={selectedResult.gender} />
-              <div className="markdown whitespace-pre-wrap leading-relaxed">
+              <div className="markdown leading-relaxed">
                 <ReactMarkdown remarkPlugins={[remarkSqueezeParagraphs]}>
                   {selectedResult.report}
                 </ReactMarkdown>
