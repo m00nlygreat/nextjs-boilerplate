@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkSqueezeParagraphs from "remark-squeeze-paragraphs";
@@ -10,7 +10,7 @@ import ManseDisplay from "@/app/components/ManseDisplay";
 import CatRain from "@/app/components/CatRain";
 import { manseCalc } from "@/lib/manse";
 
-export default function Home() {
+function HomeContent() {
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
@@ -254,5 +254,13 @@ export default function Home() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div />}> 
+      <HomeContent />
+    </Suspense>
   );
 }
