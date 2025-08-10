@@ -211,9 +211,12 @@ export default function Home() {
                       setSelectedResult(r);
                       setCatMode(r.catMode);
                     }}
-                    className="w-full rounded-md bg-white/10 px-4 py-2 text-left hover:bg-white/20"
+                    className="flex w-full items-center justify-between rounded-md bg-white/10 px-4 py-2 text-left hover:bg-white/20"
                   >
-                    <div className="font-medium">{r.name}</div>
+                    <div className="flex items-center gap-2 font-medium">
+                      <span>{r.catMode ? "😺" : "📄"}</span>
+                      <span>{r.name}</span>
+                    </div>
                     <div className="text-xs text-white/70">
                       {new Date(r.createdAt).toLocaleString()}
                     </div>
