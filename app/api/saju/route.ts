@@ -3,6 +3,8 @@ import OpenAI from "openai";
 
 export async function POST(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+    const model = searchParams.get("model") || "gpt-5-mini";
     const { birthInfo, catMode, question } = await req.json();
     if (!birthInfo) {
       return NextResponse.json({ error: "Missing birthInfo" }, { status: 400 });
@@ -33,7 +35,7 @@ export async function POST(req: Request) {
       },
     ];
     const response = await client.responses.create({
-      model: "gpt-5",
+      model,
       input: messages,
     } as any);
 
