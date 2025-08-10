@@ -56,7 +56,7 @@ export default function Home() {
       body: JSON.stringify({ birthInfo, catMode, question: extraQuestion }),
     });
     const data = await res.json();
-    setReport(data.result || data.error);
+    setReport((data.result || data.error).trim());
     setLoading(false);
   };
 
