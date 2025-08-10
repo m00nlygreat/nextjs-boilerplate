@@ -13,6 +13,7 @@ export default function Home() {
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
   const [gender, setGender] = useState("");
+  const [name, setName] = useState("");
   const [manse, setManse] =
     useState<{ year: string; month: string; day: string; hour: string } | null>(
       null
@@ -52,7 +53,7 @@ export default function Home() {
   }, [report]);
 
   const handleConfirm = async () => {
-    if (!manse || !gender) return;
+    if (!manse || !gender || !name) return;
     setLoading(true);
     const birthInfo = `${manse.hour}시 ${manse.day}일 ${manse.month}월 ${manse.year}년, 성별: ${gender}`;
     const res = await fetch("/api/saju", {
@@ -76,6 +77,13 @@ export default function Home() {
           </h1>
         </div>
         <div className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30">
+          <input
+            type="text"
+            className="block w-full min-w-0 appearance-none rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="이름을 입력하세요"
+          />
           <DateTimePicker value={birthDate} onChange={setBirthDate} />
           <input
             type="time"
@@ -133,7 +141,7 @@ export default function Home() {
           <button
             onClick={handleConfirm}
             className="flex-1 rounded-lg bg-gradient-to-r from-fuchsia-500 via-rose-500 to-amber-400 py-2 font-medium text-white shadow-lg transition-colors hover:from-fuchsia-600 hover:via-rose-600 hover:to-amber-500 disabled:opacity-50"
-            disabled={!manse || loading}
+            disabled={!manse || loading || !name}
           >
             {loading ? (catMode ? "분석중이다냐~ 기다리라옹 😹" : "분석 중...조금 시간이 걸립니다") : (catMode ? "분석시작한다냥😽" : "분석 시작")}
           </button>
