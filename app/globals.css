@@ -86,3 +86,31 @@ input[type="time"] {
   animation-fill-mode: forwards;
 }
 
+.markdown h1 {
+  @apply mb-4 text-2xl font-bold;
+}
+
+.markdown h2 {
+  @apply mt-6 mb-2 text-xl font-semibold;
+}
+
+.markdown p {
+  @apply my-4 leading-relaxed;
+}
+
+.markdown ul {
+  @apply my-4 list-disc pl-6;
+}
+
+.markdown li {
+  @apply mb-1;
+}
+
+.markdown pre {
+  @apply my-4 overflow-x-auto rounded bg-black/80 p-4 text-sm;
+}
+
+.markdown code {
+  @apply rounded bg-black/50 px-1 py-0.5 font-mono text-sm;
+}
+
