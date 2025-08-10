@@ -72,6 +72,17 @@ export default function Home() {
     }
   }, [selectedResult]);
 
+  const handleDelete = (id: string) => {
+    setResults((prev) => {
+      const updated = prev.filter((r) => r.id !== id);
+      localStorage.setItem("sajuResults", JSON.stringify(updated));
+      return updated;
+    });
+    if (selectedResult?.id === id) {
+      setSelectedResult(null);
+    }
+  };
+
   const handleConfirm = async () => {
     if (!manse || !gender || !name) return;
     setLoading(true);
@@ -205,22 +216,34 @@ export default function Home() {
             results.length > 0 && (
               <div className="space-y-2 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30">
                 {results.map((r) => (
-                  <button
+                  <div
                     key={r.id}
                     onClick={() => {
                       setSelectedResult(r);
                       setCatMode(r.catMode);
                     }}
-                    className="flex w-full items-center justify-between rounded-md bg-white/10 px-4 py-2 text-left hover:bg-white/20"
+                    className="flex w-full items-center justify-between rounded-md bg-white/10 px-4 py-2 hover:bg-white/20 cursor-pointer"
                   >
                     <div className="flex items-center gap-2 font-medium">
                       <span>{r.catMode ? "😺" : "📄"}</span>
                       <span>{r.name}</span>
                     </div>
-                    <div className="text-xs text-white/70">
-                      {new Date(r.createdAt).toLocaleString()}
+                    <div className="flex items-center gap-2">
+                      <div className="text-xs text-white/70">
+                        {new Date(r.createdAt).toLocaleString()}
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(r.id);
+                        }}
+                        className="rounded-md px-2 py-1 hover:bg-white/30"
+                        aria-label="결과 삭제"
+                      >
+                        🗑️
+                      </button>
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             )
