@@ -143,7 +143,11 @@ export default function Home() {
             ref={reportRef}
             className="rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30 whitespace-pre-wrap leading-relaxed"
           >
-            <ReactMarkdown remarkPlugins={[remarkSqueezeParagraphs]}>{report}</ReactMarkdown>
+            <div className="markdown">
+              <ReactMarkdown remarkPlugins={[remarkSqueezeParagraphs]}>
+                {report}
+              </ReactMarkdown>
+            </div>
           </div>
         )}
       </div>
