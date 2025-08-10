@@ -10,6 +10,7 @@ import CatRain from "@/app/components/CatRain";
 import { manseCalc } from "@/lib/manse";
 
 export default function Home() {
+  const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
   const [gender, setGender] = useState("");
@@ -18,10 +19,28 @@ export default function Home() {
       null
     );
   const [loading, setLoading] = useState(false);
-  const [report, setReport] = useState("");
   const [catMode, setCatMode] = useState(false);
   const [extraQuestion, setExtraQuestion] = useState("");
   const reportRef = useRef<HTMLDivElement>(null);
+  interface StoredResult {
+    id: string;
+    name: string;
+    manse: { year: string; month: string; day: string; hour: string };
+    gender: string;
+    report: string;
+    catMode: boolean;
+    model: string;
+    createdAt: string;
+  }
+  const [results, setResults] = useState<StoredResult[]>([]);
+  const [selectedResult, setSelectedResult] = useState<StoredResult | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("sajuResults");
+    if (stored) {
+      setResults(JSON.parse(stored));
+    }
+  }, []);
 
   useEffect(() => {
     if (birthDate && birthTime && gender) {
@@ -29,10 +48,10 @@ export default function Home() {
       const [hh, mm] = birthTime.split(":").map(Number);
       const result = manseCalc(y, m, d, hh, mm);
       setManse(result);
-      setReport("");
+      setSelectedResult(null);
     } else {
       setManse(null);
-      setReport("");
+      setSelectedResult(null);
     }
   }, [birthDate, birthTime, gender]);
 
@@ -48,11 +67,13 @@ export default function Home() {
   }, [catMode]);
 
   useEffect(() => {
-    reportRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [report]);
+    if (selectedResult) {
+      reportRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [selectedResult]);
 
   const handleConfirm = async () => {
-    if (!manse || !gender) return;
+    if (!manse || !gender || !name) return;
     setLoading(true);
     const birthInfo = `${manse.hour}시 ${manse.day}일 ${manse.month}월 ${manse.year}년, 성별: ${gender}`;
     const res = await fetch("/api/saju", {
@@ -61,7 +82,23 @@ export default function Home() {
       body: JSON.stringify({ birthInfo, catMode, question: extraQuestion }),
     });
     const data = await res.json();
-    setReport((data.result || data.error).trim());
+    const resultText = (data.result || data.error).trim();
+    const newResult: StoredResult = {
+      id: Date.now().toString(),
+      name,
+      manse,
+      gender,
+      report: resultText,
+      catMode,
+      model: "gpt-5",
+      createdAt: new Date().toISOString(),
+    };
+    setResults((prev) => {
+      const updated = [...prev, newResult];
+      localStorage.setItem("sajuResults", JSON.stringify(updated));
+      return updated;
+    });
+    setSelectedResult(newResult);
     setLoading(false);
   };
 
@@ -76,6 +113,13 @@ export default function Home() {
           </h1>
         </div>
         <div className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30">
+          <input
+            type="text"
+            className="w-full rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="이름을 입력하세요"
+          />
           <DateTimePicker value={birthDate} onChange={setBirthDate} />
           <input
             type="time"
@@ -93,12 +137,12 @@ export default function Home() {
             <option value="여성">여성</option>
           </select>
         </div>
-        {manse && (
+        {manse && !selectedResult && (
           <div className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30 text-center">
             <ManseDisplay manse={manse} gender={gender} />
           </div>
         )}
-        {manse && (
+        {manse && !selectedResult && (
           <input
             type="text"
             className="w-full rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
@@ -133,23 +177,52 @@ export default function Home() {
           <button
             onClick={handleConfirm}
             className="flex-1 rounded-lg bg-gradient-to-r from-fuchsia-500 via-rose-500 to-amber-400 py-2 font-medium text-white shadow-lg transition-colors hover:from-fuchsia-600 hover:via-rose-600 hover:to-amber-500 disabled:opacity-50"
-            disabled={!manse || loading}
+            disabled={!manse || !name || loading}
           >
             {loading ? (catMode ? "분석중이다냐~ 기다리라옹 😹" : "분석 중...조금 시간이 걸립니다") : (catMode ? "분석시작한다냥😽" : "분석 시작")}
           </button>
         </div>
-        {report && (
-          <div
-            ref={reportRef}
-            className="rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30 whitespace-pre-wrap leading-relaxed"
-          >
-            <div className="markdown">
-              <ReactMarkdown remarkPlugins={[remarkSqueezeParagraphs]}>
-                {report}
-              </ReactMarkdown>
+        <div ref={reportRef}>
+          {selectedResult ? (
+            <div className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30">
+              <button
+                onClick={() => {
+                  setSelectedResult(null);
+                  setCatMode(false);
+                }}
+                className="mb-4 text-sm text-fuchsia-200"
+              >
+                ← 뒤로가기
+              </button>
+              <ManseDisplay manse={selectedResult.manse} gender={selectedResult.gender} />
+              <div className="markdown whitespace-pre-wrap leading-relaxed">
+                <ReactMarkdown remarkPlugins={[remarkSqueezeParagraphs]}>
+                  {selectedResult.report}
+                </ReactMarkdown>
+              </div>
             </div>
-          </div>
-        )}
+          ) : (
+            results.length > 0 && (
+              <div className="space-y-2 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30">
+                {results.map((r) => (
+                  <button
+                    key={r.id}
+                    onClick={() => {
+                      setSelectedResult(r);
+                      setCatMode(r.catMode);
+                    }}
+                    className="w-full rounded-md bg-white/10 px-4 py-2 text-left hover:bg-white/20"
+                  >
+                    <div className="font-medium">{r.name}</div>
+                    <div className="text-xs text-white/70">
+                      {new Date(r.createdAt).toLocaleString()}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )
+          )}
+        </div>
       </div>
     </main>
   );
