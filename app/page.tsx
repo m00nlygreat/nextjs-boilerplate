@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkSqueezeParagraphs from "remark-squeeze-paragraphs";
@@ -21,6 +21,7 @@ export default function Home() {
   const [report, setReport] = useState("");
   const [catMode, setCatMode] = useState(false);
   const [extraQuestion, setExtraQuestion] = useState("");
+  const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (birthDate && birthTime && gender) {
@@ -45,6 +46,10 @@ export default function Home() {
       document.body.classList.remove("cat-mode-bg");
     };
   }, [catMode]);
+
+  useEffect(() => {
+    reportRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [report]);
 
   const handleConfirm = async () => {
     if (!manse || !gender) return;
@@ -134,7 +139,10 @@ export default function Home() {
           </button>
         </div>
         {report && (
-          <div className="rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30 whitespace-pre-wrap leading-relaxed">
+          <div
+            ref={reportRef}
+            className="rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30 whitespace-pre-wrap leading-relaxed"
+          >
             <ReactMarkdown remarkPlugins={[remarkSqueezeParagraphs]}>{report}</ReactMarkdown>
           </div>
         )}
