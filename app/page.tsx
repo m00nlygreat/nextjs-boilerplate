@@ -8,20 +8,30 @@ import DateTimePicker from "@/app/components/DateTimePicker";
 import ManseDisplay from "@/app/components/ManseDisplay";
 import CatRain from "@/app/components/CatRain";
 import { manseCalc } from "@/lib/manse";
+import type { Manse, StoredResult } from "@/lib/types";
 
 export default function Home() {
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
   const [gender, setGender] = useState("");
-  const [manse, setManse] =
-    useState<{ year: string; month: string; day: string; hour: string } | null>(
-      null
-    );
+  const [manse, setManse] = useState<Manse | null>(null);
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState("");
   const [catMode, setCatMode] = useState(false);
   const [extraQuestion, setExtraQuestion] = useState("");
+  const [results, setResults] = useState<StoredResult[]>([]);
   const reportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("sajuResults");
+    if (saved) {
+      try {
+        setResults(JSON.parse(saved));
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (birthDate && birthTime && gender) {
@@ -61,8 +71,21 @@ export default function Home() {
       body: JSON.stringify({ birthInfo, catMode, question: extraQuestion }),
     });
     const data = await res.json();
-    setReport((data.result || data.error).trim());
+    const resultText = (data.result || data.error).trim();
+    setReport(resultText);
     setLoading(false);
+    const stored: StoredResult = {
+      name: birthInfo,
+      manse,
+      createdAt: new Date().toISOString(),
+      catMode,
+      model: data.model || "",
+    };
+    setResults((prev) => {
+      const updated = [...prev, stored];
+      localStorage.setItem("sajuResults", JSON.stringify(updated));
+      return updated;
+    });
   };
 
   return (
