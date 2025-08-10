@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
+import remarkSqueezeParagraphs from "remark-squeeze-paragraphs";
 import DateTimePicker from "@/app/components/DateTimePicker";
 import ManseDisplay from "@/app/components/ManseDisplay";
 import CatRain from "@/app/components/CatRain";
@@ -134,7 +135,7 @@ export default function Home() {
         </div>
         {report && (
           <div className="rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30 whitespace-pre-wrap leading-relaxed">
-            <ReactMarkdown>{report}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkSqueezeParagraphs]}>{report}</ReactMarkdown>
           </div>
         )}
       </div>
