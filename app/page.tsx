@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkSqueezeParagraphs from "remark-squeeze-paragraphs";
+import { useSearchParams } from "next/navigation";
 import DateTimePicker from "@/app/components/DateTimePicker";
 import ManseDisplay from "@/app/components/ManseDisplay";
 import CatRain from "@/app/components/CatRain";
@@ -22,6 +23,8 @@ export default function Home() {
   const [catMode, setCatMode] = useState(false);
   const [extraQuestion, setExtraQuestion] = useState("");
   const reportRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
+  const model = searchParams.get("model") || "gpt-5-mini";
   interface StoredResult {
     id: string;
     name: string;
@@ -87,7 +90,7 @@ export default function Home() {
     if (!manse || !gender || !name) return;
     setLoading(true);
     const birthInfo = `${manse.hour}시 ${manse.day}일 ${manse.month}월 ${manse.year}년, 성별: ${gender}`;
-    const res = await fetch("/api/saju", {
+    const res = await fetch(`/api/saju?model=${encodeURIComponent(model)}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ birthInfo, catMode, question: extraQuestion }),
@@ -101,7 +104,7 @@ export default function Home() {
       gender,
       report: resultText,
       catMode,
-      model: "gpt-5",
+      model,
       createdAt: new Date().toISOString(),
     };
     setResults((prev) => {
