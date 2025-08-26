@@ -5,7 +5,26 @@ export async function POST(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const model = searchParams.get("model") || "gpt-5-mini";
-    const { birthInfo, catMode, question } = await req.json();
+
+    let birthInfo: string | undefined;
+    let catMode: boolean | undefined;
+    let question: string | undefined;
+    try {
+      const bodyText = await req.text();
+      if (!bodyText) {
+        return NextResponse.json(
+          { error: "Invalid or missing request body" },
+          { status: 400 }
+        );
+      }
+      ({ birthInfo, catMode, question } = JSON.parse(bodyText));
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid or missing request body" },
+        { status: 400 }
+      );
+    }
+
     if (!birthInfo) {
       return NextResponse.json({ error: "Missing birthInfo" }, { status: 400 });
     }
@@ -45,4 +64,8 @@ export async function POST(req: Request) {
     console.error(err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
+}
+
+export async function GET() {
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
