@@ -27,6 +27,9 @@ export async function POST(req: Request) {
     ];
     const response = await client.responses.create({
       model,
+        tools: [
+        { type: "web_search_preview" },
+    ],
       input: messages,
     } as any);
 
