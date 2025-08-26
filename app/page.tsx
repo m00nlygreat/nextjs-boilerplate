@@ -9,6 +9,7 @@ import DateTimePicker from "@/app/components/DateTimePicker";
 import ManseDisplay from "@/app/components/ManseDisplay";
 import CatRain from "@/app/components/CatRain";
 import { manseCalc } from "@/lib/manse";
+import { replaceMarkdownLinkText } from "@/lib/markdown";
 
 function HomeContent() {
   const [name, setName] = useState("");
@@ -36,14 +37,20 @@ function HomeContent() {
     model: string;
     createdAt: string;
   }
-    const [results, setResults] = useState<StoredResult[]>([]);
-    const [selectedResult, setSelectedResult] = useState<StoredResult | null>(null);
-    const [error, setError] = useState<string | null>(null);
+  const [results, setResults] = useState<StoredResult[]>([]);
+  const [selectedResult, setSelectedResult] =
+    useState<StoredResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("sajuResults");
     if (stored) {
-      setResults(JSON.parse(stored));
+      const parsed: StoredResult[] = JSON.parse(stored);
+      const processed = parsed.map((r) => ({
+        ...r,
+        report: replaceMarkdownLinkText(r.report, r.catMode ? "🐾" : "📎"),
+      }));
+      setResults(processed);
     }
   }, []);
 
@@ -88,38 +95,40 @@ function HomeContent() {
     }
   };
 
-    const handleConfirm = async () => {
-      if (!manse || !gender || !name) return;
-      setError(null);
-      setLoading(true);
-      const birthInfo = `${manse.hour}시 ${manse.day}일 ${manse.month}월 ${manse.year}년, 성별: ${gender}`;
-      const url = `/api/saju?model=${encodeURIComponent(model)}${
-        search ? "&search=true" : ""
-      }`;
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ birthInfo, catMode, question: extraQuestion }),
-      });
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("API 응답 오류:", res.status, errorText);
-        setError(
-          catMode
-            ? "요청이 실패했냥... 다시 시도해달라옹."
-            : "요청이 실패했습니다. 다시 시도해 주세요."
-        );
-        setLoading(false);
-        return;
-      }
-      const data = await res.json();
-      const resultText = (data.result || data.error).trim();
-      const newResult: StoredResult = {
-        id: Date.now().toString(),
-        name,
-        manse,
+  const handleConfirm = async () => {
+    if (!manse || !gender || !name) return;
+    setError(null);
+    setLoading(true);
+    const birthInfo = `${manse.hour}시 ${manse.day}일 ${manse.month}월 ${manse.year}년, 성별: ${gender}`;
+    const url = `/api/saju?model=${encodeURIComponent(model)}${
+      search ? "&search=true" : ""
+    }`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ birthInfo, catMode, question: extraQuestion }),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("API 응답 오류:", res.status, errorText);
+      setError(
+        catMode
+          ? "요청이 실패했냥... 다시 시도해달라옹."
+          : "요청이 실패했습니다. 다시 시도해 주세요."
+      );
+      setLoading(false);
+      return;
+    }
+    const data = await res.json();
+    const resultText = (data.result || data.error).trim();
+    const emoji = catMode ? "🐾" : "📎";
+    const processedText = replaceMarkdownLinkText(resultText, emoji);
+    const newResult: StoredResult = {
+      id: Date.now().toString(),
+      name,
+      manse,
       gender,
-      report: resultText,
+      report: processedText,
       catMode,
       model,
       createdAt: new Date().toISOString(),
