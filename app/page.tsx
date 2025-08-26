@@ -9,6 +9,7 @@ import DateTimePicker from "@/app/components/DateTimePicker";
 import ManseDisplay from "@/app/components/ManseDisplay";
 import CatRain from "@/app/components/CatRain";
 import { manseCalc } from "@/lib/manse";
+import { transformLinkText } from "@/lib/utils/markdown";
 
 function HomeContent() {
   const [name, setName] = useState("");
@@ -233,7 +234,10 @@ function HomeContent() {
               <ManseDisplay manse={selectedResult.manse} gender={selectedResult.gender} />
               <div className="markdown leading-relaxed">
                 <ReactMarkdown remarkPlugins={[remarkSqueezeParagraphs]}>
-                  {selectedResult.report}
+                  {transformLinkText(
+                    selectedResult.report,
+                    selectedResult.catMode,
+                  )}
                 </ReactMarkdown>
               </div>
             </div>
