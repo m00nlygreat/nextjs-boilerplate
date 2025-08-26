@@ -98,6 +98,8 @@ function HomeContent() {
         body: JSON.stringify({ birthInfo, catMode, question: extraQuestion }),
       });
       if (!res.ok) {
+        const errorText = await res.text();
+        console.error("API 응답 오류:", res.status, errorText);
         setError(
           catMode
             ? "요청이 실패했냥... 다시 시도해달라옹."
