@@ -10,15 +10,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing birthInfo" }, { status: 400 });
     }
 
-    const searchUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(birthInfo + " 사주팔자")}&format=json&no_redirect=1&no_html=1`;
-    const searchData = await fetch(searchUrl).then((r) => r.json());
-    let snippets = "";
-    if (searchData?.RelatedTopics) {
-      snippets = searchData.RelatedTopics.map((t: any) => t.Text).slice(0, 3).join("\n");
-    } else if (searchData?.Abstract) {
-      snippets = searchData.Abstract;
-    }
-
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const messages = [
       {
@@ -31,7 +22,7 @@ export async function POST(req: Request) {
       },
       {
         role: "user",
-        content: `${birthInfo}\n웹 검색 결과:\n${snippets}\n추가 질문: ${question}`,
+        content: `${birthInfo}\n추가 질문: ${question}`,
       },
     ];
     const response = await client.responses.create({
