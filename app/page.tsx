@@ -35,8 +35,9 @@ function HomeContent() {
     model: string;
     createdAt: string;
   }
-  const [results, setResults] = useState<StoredResult[]>([]);
-  const [selectedResult, setSelectedResult] = useState<StoredResult | null>(null);
+    const [results, setResults] = useState<StoredResult[]>([]);
+    const [selectedResult, setSelectedResult] = useState<StoredResult | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("sajuResults");
@@ -86,21 +87,31 @@ function HomeContent() {
     }
   };
 
-  const handleConfirm = async () => {
-    if (!manse || !gender || !name) return;
-    setLoading(true);
-    const birthInfo = `${manse.hour}시 ${manse.day}일 ${manse.month}월 ${manse.year}년, 성별: ${gender}`;
-    const res = await fetch(`/api/saju?model=${encodeURIComponent(model)}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ birthInfo, catMode, question: extraQuestion }),
-    });
-    const data = await res.json();
-    const resultText = (data.result || data.error).trim();
-    const newResult: StoredResult = {
-      id: Date.now().toString(),
-      name,
-      manse,
+    const handleConfirm = async () => {
+      if (!manse || !gender || !name) return;
+      setError(null);
+      setLoading(true);
+      const birthInfo = `${manse.hour}시 ${manse.day}일 ${manse.month}월 ${manse.year}년, 성별: ${gender}`;
+      const res = await fetch(`/api/saju?model=${encodeURIComponent(model)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ birthInfo, catMode, question: extraQuestion }),
+      });
+      if (!res.ok) {
+        setError(
+          catMode
+            ? "요청이 실패했냥... 다시 시도해달라옹."
+            : "요청이 실패했습니다. 다시 시도해 주세요."
+        );
+        setLoading(false);
+        return;
+      }
+      const data = await res.json();
+      const resultText = (data.result || data.error).trim();
+      const newResult: StoredResult = {
+        id: Date.now().toString(),
+        name,
+        manse,
       gender,
       report: resultText,
       catMode,
@@ -196,6 +207,11 @@ function HomeContent() {
             {loading ? (catMode ? "분석중이다냐~ 기다리라옹 😹" : "분석 중...조금 시간이 걸립니다") : (catMode ? "분석시작한다냥😽" : "분석 시작")}
           </button>
         </div>
+        {error && (
+          <div className="rounded-md bg-red-500/20 p-2 text-sm text-red-200" role="alert">
+            {error}
+          </div>
+        )}
         <div ref={reportRef}>
           {selectedResult ? (
             <div className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30">
