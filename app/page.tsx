@@ -92,10 +92,12 @@ function HomeContent() {
       setError(null);
       setLoading(true);
       const birthInfo = `${manse.hour}시 ${manse.day}일 ${manse.month}월 ${manse.year}년, 성별: ${gender}`;
+      const body = { birthInfo, catMode, question: extraQuestion };
+      console.log("Request body:", body);
       const res = await fetch(`/api/saju?model=${encodeURIComponent(model)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ birthInfo, catMode, question: extraQuestion }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const errorText = await res.text();
