@@ -25,6 +25,7 @@ function HomeContent() {
   const reportRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
   const model = searchParams.get("model") || "gpt-5-mini";
+  const search = searchParams.get("search") === "true";
   interface StoredResult {
     id: string;
     name: string;
@@ -92,7 +93,10 @@ function HomeContent() {
       setError(null);
       setLoading(true);
       const birthInfo = `${manse.hour}시 ${manse.day}일 ${manse.month}월 ${manse.year}년, 성별: ${gender}`;
-      const res = await fetch(`/api/saju?model=${encodeURIComponent(model)}`, {
+      const url = `/api/saju?model=${encodeURIComponent(model)}${
+        search ? "&search=true" : ""
+      }`;
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ birthInfo, catMode, question: extraQuestion }),

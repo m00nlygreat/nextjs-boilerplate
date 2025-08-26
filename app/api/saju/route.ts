@@ -5,6 +5,7 @@ export async function POST(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const model = searchParams.get("model") || "gpt-5-mini";
+    const search = searchParams.get("search") === "true";
     const { birthInfo, catMode, question } = await req.json();
     if (!birthInfo) {
       return NextResponse.json({ error: "Missing birthInfo" }, { status: 400 });
@@ -25,13 +26,13 @@ export async function POST(req: Request) {
         content: `${birthInfo}\n추가 질문: ${question}`,
       },
     ];
-    const response = await client.responses.create({
-      model,
-        tools: [
-        { type: "web_search_preview" },
-    ],
-      input: messages,
-    } as any);
+    const response = await client.responses.create(
+      {
+        model,
+        ...(search ? { tools: [{ type: "web_search_preview" }] } : {}),
+        input: messages,
+      } as any
+    );
 
     const output = response.output_text;
     return NextResponse.json({ result: output });
