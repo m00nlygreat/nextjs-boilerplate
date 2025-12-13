@@ -34,7 +34,9 @@ export async function POST(req: Request) {
       } as any
     );
 
-    const stream = response.toReadableStream();
+    const stream =
+      (response as unknown as { toReadableStream: () => ReadableStream }).
+        toReadableStream();
     return new NextResponse(stream, {
       headers: {
         "Content-Type": "text/event-stream; charset=utf-8",
