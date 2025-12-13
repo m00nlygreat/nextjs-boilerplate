@@ -26,7 +26,7 @@ export async function POST(req: Request) {
         content: `${birthInfo}\n추가 질문: ${question}`,
       },
     ];
-    const response = await client.responses.create(
+    const response = await client.responses.stream(
       {
         model,
         ...(search ? { tools: [{ type: "web_search_preview" }] } : {}),
@@ -34,8 +34,29 @@ export async function POST(req: Request) {
       } as any
     );
 
-    const output = response.output_text;
-    return NextResponse.json({ result: output });
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        const encoder = new TextEncoder();
+        try {
+          for await (const event of response) {
+            if (event.type === "response.output_text.delta") {
+              controller.enqueue(encoder.encode(event.delta));
+            }
+          }
+        } catch (streamError: any) {
+          controller.error(streamError);
+        } finally {
+          controller.close();
+        }
+      },
+    });
+
+    return new NextResponse(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-cache",
+      },
+    });
   } catch (err: any) {
     console.error(err);
     return NextResponse.json({ error: err.message }, { status: 500 });

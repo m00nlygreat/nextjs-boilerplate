@@ -24,6 +24,8 @@ function HomeContent() {
   const [catMode, setCatMode] = useState(false);
   const [extraQuestion, setExtraQuestion] = useState("");
   const reportRef = useRef<HTMLDivElement>(null);
+  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const searchParams = useSearchParams();
   const model = searchParams.get("model") || "gpt-5-mini";
   const search = searchParams.get("search") === "true";
@@ -41,6 +43,7 @@ function HomeContent() {
   const [selectedResult, setSelectedResult] =
     useState<StoredResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [report, setReport] = useState("");
 
   useEffect(() => {
     const stored = localStorage.getItem("sajuResults");
@@ -84,6 +87,13 @@ function HomeContent() {
     }
   }, [selectedResult]);
 
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+      readerRef.current?.cancel();
+    };
+  }, []);
+
   const handleDelete = (id: string) => {
     setResults((prev) => {
       const updated = prev.filter((r) => r.id !== id);
@@ -97,49 +107,95 @@ function HomeContent() {
 
   const handleConfirm = async () => {
     if (!manse || !gender || !name) return;
+    abortControllerRef.current?.abort();
+    readerRef.current?.cancel();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
     setError(null);
+    setReport("");
+    setSelectedResult(null);
     setLoading(true);
     const birthInfo = `${manse.hour}시 ${manse.day}일 ${manse.month}월 ${manse.year}년, 성별: ${gender}`;
     const url = `/api/saju?model=${encodeURIComponent(model)}${
       search ? "&search=true" : ""
     }`;
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ birthInfo, catMode, question: extraQuestion }),
-    });
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error("API 응답 오류:", res.status, errorText);
-      setError(
-        catMode
-          ? "요청이 실패했냥... 다시 시도해달라옹."
-          : "요청이 실패했습니다. 다시 시도해 주세요."
-      );
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ birthInfo, catMode, question: extraQuestion }),
+        signal: controller.signal,
+      });
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("API 응답 오류:", res.status, errorText);
+        setError(
+          catMode
+            ? "요청이 실패했냥... 다시 시도해달라옹."
+            : "요청이 실패했습니다. 다시 시도해 주세요."
+        );
+        return;
+      }
+      if (!res.body) {
+        throw new Error("스트리밍 본문을 가져오지 못했어요.");
+      }
+
+      const reader = res.body.getReader();
+      readerRef.current = reader;
+      const decoder = new TextDecoder();
+      let accumulated = "";
+      const emoji = catMode ? "🐾" : "📎";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        accumulated += chunk;
+        setReport(replaceMarkdownLinkText(accumulated, emoji));
+      }
+
+      const finalText = accumulated.trim();
+      const processedText = replaceMarkdownLinkText(finalText, emoji);
+      const newResult: StoredResult = {
+        id: Date.now().toString(),
+        name,
+        manse,
+        gender,
+        report: processedText,
+        catMode,
+        model,
+        createdAt: new Date().toISOString(),
+      };
+      setResults((prev) => {
+        const updated = [...prev, newResult];
+        localStorage.setItem("sajuResults", JSON.stringify(updated));
+        return updated;
+      });
+      setSelectedResult(newResult);
+      setReport("");
+    } catch (err: any) {
+      if (controller.signal.aborted) {
+        setError(catMode ? "요청을 취소했냥." : "요청이 취소되었습니다.");
+      } else {
+        console.error(err);
+        setError(
+          catMode
+            ? "오류가 발생했냥... 다시 시도해달라옹."
+            : "오류가 발생했습니다. 다시 시도해 주세요."
+        );
+      }
+      if (readerRef.current) {
+        try {
+          await readerRef.current.cancel();
+        } catch (cancelErr) {
+          console.error(cancelErr);
+        }
+      }
+    } finally {
       setLoading(false);
-      return;
+      abortControllerRef.current = null;
+      readerRef.current = null;
     }
-    const data = await res.json();
-    const resultText = (data.result || data.error).trim();
-    const emoji = catMode ? "🐾" : "📎";
-    const processedText = replaceMarkdownLinkText(resultText, emoji);
-    const newResult: StoredResult = {
-      id: Date.now().toString(),
-      name,
-      manse,
-      gender,
-      report: processedText,
-      catMode,
-      model,
-      createdAt: new Date().toISOString(),
-    };
-    setResults((prev) => {
-      const updated = [...prev, newResult];
-      localStorage.setItem("sajuResults", JSON.stringify(updated));
-      return updated;
-    });
-    setSelectedResult(newResult);
-    setLoading(false);
   };
 
   return (
@@ -243,6 +299,17 @@ function HomeContent() {
               <div className="markdown leading-relaxed">
                 <ReactMarkdown remarkPlugins={[remarkSqueezeParagraphs]}>
                   {selectedResult.report}
+                </ReactMarkdown>
+              </div>
+            </div>
+          ) : report ? (
+            <div className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30">
+              <div className="text-sm text-white/70">
+                {catMode ? "분석을 받아오고 있다냥~" : "분석 내용을 받아오는 중입니다..."}
+              </div>
+              <div className="markdown leading-relaxed">
+                <ReactMarkdown remarkPlugins={[remarkSqueezeParagraphs]}>
+                  {report}
                 </ReactMarkdown>
               </div>
             </div>
