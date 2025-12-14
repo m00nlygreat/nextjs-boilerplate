@@ -321,7 +321,7 @@ function HomeContent() {
         </div>
         {manse && !selectedResult && (
           <div className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30 text-center">
-            <ManseDisplay manse={manse} gender={gender} />
+            <ManseDisplay manse={manse}/>
           </div>
         )}
         {manse && !selectedResult && (
@@ -342,8 +342,7 @@ function HomeContent() {
                   onChange={() => setInquiryType("luck")}
                   className="sr-only"
                 />
-                <span>대운 해석 받기</span>
-                <span className="mt-1 text-[11px] font-normal opacity-80">(디폴트)</span>
+                <span>대운 해석</span>
               </label>
               <label
                 className={`flex flex-1 cursor-pointer flex-col items-center rounded-lg px-3 py-2 text-center font-medium transition-colors ${
@@ -360,7 +359,7 @@ function HomeContent() {
                   onChange={() => setInquiryType("question")}
                   className="sr-only"
                 />
-                <span>추가 질문 입력</span>
+                <span>추가 질문</span>
               </label>
             </div>
             {inquiryType === "question" ? (

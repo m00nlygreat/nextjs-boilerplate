@@ -7,10 +7,9 @@ interface ManseDisplayProps {
     day: string;
     hour: string;
   };
-  gender: string;
 }
 
-export default function ManseDisplay({ manse, gender }: ManseDisplayProps) {
+export default function ManseDisplay({ manse }: ManseDisplayProps) {
   const parts = [
     { label: "시", value: manse.hour },
     { label: "일", value: manse.day },
@@ -82,7 +81,6 @@ export default function ManseDisplay({ manse, gender }: ManseDisplayProps) {
           );
         })}
       </div>
-      <p className="text-sm text-gray-200">{gender}</p>
     </div>
   );
 }
