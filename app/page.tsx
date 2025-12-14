@@ -10,6 +10,58 @@ import ManseDisplay from "@/app/components/ManseDisplay";
 import CatRain from "@/app/components/CatRain";
 import { replaceMarkdownLinkText } from "@/lib/markdown";
 
+const elementColorMap: Record<string, string> = {
+  목: "bg-emerald-400 text-white",
+  화: "bg-rose-400 text-white",
+  토: "bg-amber-200 text-stone-800",
+  금: "bg-slate-100 text-gray-700",
+  수: "bg-sky-500 text-white",
+};
+
+const elementLookup: Record<string, string> = {
+  甲: "목",
+  乙: "목",
+  丙: "화",
+  丁: "화",
+  戊: "토",
+  己: "토",
+  庚: "금",
+  辛: "금",
+  壬: "수",
+  癸: "수",
+  子: "수",
+  丑: "토",
+  寅: "목",
+  卯: "목",
+  辰: "토",
+  巳: "화",
+  午: "화",
+  未: "토",
+  申: "금",
+  酉: "금",
+  戌: "토",
+  亥: "수",
+};
+
+const zodiacEmojiMap: Record<string, string> = {
+  子: "🐭",
+  丑: "🐮",
+  寅: "🐯",
+  卯: "🐰",
+  辰: "🐲",
+  巳: "🐍",
+  午: "🐴",
+  未: "🐑",
+  申: "🐒",
+  酉: "🐔",
+  戌: "🐶",
+  亥: "🐷",
+};
+
+function getElement(char: string): string | undefined {
+  return elementLookup[char];
+}
+
 function HomeContent() {
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -49,9 +101,19 @@ function HomeContent() {
     model: string;
     createdAt: string;
   }
+  type StoredUser = {
+    id: string;
+    name: string;
+    birthDate: string;
+    birthTime: string;
+    gender: string;
+    manse: ManseResult;
+    emoji: string;
+  };
   const [results, setResults] = useState<StoredResult[]>([]);
   const [selectedResult, setSelectedResult] =
     useState<StoredResult | null>(null);
+  const [users, setUsers] = useState<StoredUser[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [streamingReport, setStreamingReport] = useState("");
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -65,6 +127,12 @@ function HomeContent() {
         report: replaceMarkdownLinkText(r.report, r.catMode ? "🐾" : "📎"),
       }));
       setResults(processed);
+    }
+
+    const storedUsers = localStorage.getItem("sajuUsers");
+    if (storedUsers) {
+      const parsedUsers: StoredUser[] = JSON.parse(storedUsers);
+      setUsers(parsedUsers);
     }
   }, []);
 
@@ -150,6 +218,30 @@ function HomeContent() {
 
   const handleConfirm = async () => {
     if (!manse || !gender || !name) return;
+    const dayBranch = manse.day.charAt(1);
+    setUsers((prev) => {
+      const duplicate = prev.some(
+        (u) =>
+          u.name === name &&
+          u.birthDate === birthDate &&
+          u.birthTime === birthTime
+      );
+      if (duplicate) {
+        return prev;
+      }
+      const newUser: StoredUser = {
+        id: Date.now().toString(),
+        name,
+        birthDate,
+        birthTime,
+        gender,
+        manse,
+        emoji: zodiacEmojiMap[dayBranch] || "✨",
+      };
+      const updatedUsers = [...prev, newUser];
+      localStorage.setItem("sajuUsers", JSON.stringify(updatedUsers));
+      return updatedUsers;
+    });
     setError(null);
     setLoading(true);
     setStreamingReport("");
@@ -294,6 +386,43 @@ function HomeContent() {
             꽤 잘맞는 AI 사주 분석
           </h1>
         </div>
+        {users.length > 0 && (
+          <div className="space-y-2 rounded-2xl bg-white/15 p-4 shadow-2xl backdrop-blur-md ring-1 ring-white/20">
+            <div className="text-sm text-white/80">최근 등록한 이용자</div>
+            <div className="flex gap-4 overflow-x-auto pb-2">
+              {users.map((user) => {
+                const element = getElement(user.manse.day.charAt(0)) || "";
+                const colorClasses =
+                  elementColorMap[element] || "bg-white/30 text-gray-900";
+                return (
+                  <button
+                    key={user.id}
+                    onClick={() => {
+                      setName(user.name);
+                      setBirthDate(user.birthDate);
+                      setBirthTime(user.birthTime);
+                      setGender(user.gender);
+                      setManse(user.manse);
+                      setSelectedResult(null);
+                    }}
+                    className="flex min-w-[80px] flex-col items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-center shadow-inner transition hover:bg-white/10"
+                  >
+                    <span
+                      className={`${colorClasses} flex h-14 w-14 items-center justify-center rounded-full text-2xl shadow-lg`}
+                      aria-hidden
+                    >
+                      {user.emoji}
+                    </span>
+                    <span className="text-sm font-medium text-white">{user.name}</span>
+                    <span className="text-xs text-white/70">
+                      {user.birthDate} {user.birthTime}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <div className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30">
           <input
             type="text"
