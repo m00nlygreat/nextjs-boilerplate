@@ -26,7 +26,7 @@ export async function POST(req: Request) {
         content: `${birthInfo}\n추가 질문: ${question}`,
       },
     ];
-    const response = await client.responses.create(
+    const response = await client.responses.stream(
       {
         model,
         ...(search ? { tools: [{ type: "web_search_preview" }] } : {}),
@@ -34,8 +34,28 @@ export async function POST(req: Request) {
       } as any
     );
 
-    const output = response.output_text;
-    return NextResponse.json({ result: output });
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const event of response as any) {
+            const payload = JSON.stringify(event);
+            controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
+          }
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
+        } catch (streamErr) {
+          controller.error(streamErr);
+        }
+      },
+    });
+    return new NextResponse(stream, {
+      headers: {
+        "Content-Type": "text/event-stream; charset=utf-8",
+        Connection: "keep-alive",
+        "Cache-Control": "no-cache, no-transform",
+      },
+    });
   } catch (err: any) {
     console.error(err);
     return NextResponse.json({ error: err.message }, { status: 500 });

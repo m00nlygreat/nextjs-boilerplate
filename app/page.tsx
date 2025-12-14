@@ -41,6 +41,8 @@ function HomeContent() {
   const [selectedResult, setSelectedResult] =
     useState<StoredResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [streamingReport, setStreamingReport] = useState("");
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("sajuResults");
@@ -99,47 +101,130 @@ function HomeContent() {
     if (!manse || !gender || !name) return;
     setError(null);
     setLoading(true);
+    setStreamingReport("");
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    setSelectedResult(null);
     const birthInfo = `${manse.hour}시 ${manse.day}일 ${manse.month}월 ${manse.year}년, 성별: ${gender}`;
     const url = `/api/saju?model=${encodeURIComponent(model)}${
       search ? "&search=true" : ""
     }`;
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ birthInfo, catMode, question: extraQuestion }),
-    });
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error("API 응답 오류:", res.status, errorText);
-      setError(
-        catMode
-          ? "요청이 실패했냥... 다시 시도해달라옹."
-          : "요청이 실패했습니다. 다시 시도해 주세요."
-      );
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ birthInfo, catMode, question: extraQuestion }),
+        signal: controller.signal,
+      });
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("API 응답 오류:", res.status, errorText);
+        setError(
+          catMode
+            ? "요청이 실패했냥... 다시 시도해달라옹."
+            : "요청이 실패했습니다. 다시 시도해 주세요."
+        );
+        return;
+      }
+      if (!res.body) {
+        setError(
+          catMode
+            ? "스트림이 연결되지 않았냥. 다시 시도해달라옹."
+            : "응답 스트림을 열지 못했습니다. 다시 시도해 주세요."
+        );
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let aggregated = "";
+      let buffer = "";
+      const appendText = (text: string) => {
+        aggregated += text;
+        setStreamingReport((prev) => prev + text);
+      };
+      const processBuffer = (dataChunk: string) => {
+        buffer += dataChunk;
+        const events = buffer.split("\n\n");
+        buffer = events.pop() ?? "";
+        let parsedAny = false;
+        events.forEach((event) => {
+          const dataLine = event
+            .split("\n")
+            .find((line) => line.trim().startsWith("data:"));
+          if (!dataLine) return;
+          const data = dataLine.replace(/^data:\s*/, "").trim();
+          if (!data || data === "[DONE]") return;
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.type === "response.output_text.delta" && parsed.delta) {
+              appendText(parsed.delta as string);
+              parsedAny = true;
+            } else if (parsed.type === "response.output_text.done" && parsed.output_text) {
+              appendText(parsed.output_text as string);
+              parsedAny = true;
+            } else if (parsed.type === "error" && parsed.error?.message) {
+              throw new Error(parsed.error.message as string);
+            }
+          } catch (parseError) {
+            console.error("스트림 파싱 오류", parseError, data);
+          }
+        });
+        if (!parsedAny && dataChunk.trim() && !/data:/i.test(dataChunk)) {
+          appendText(dataChunk);
+          buffer = "";
+        }
+      };
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          processBuffer(chunk);
+        }
+        if (buffer.trim()) {
+          processBuffer("\n\n");
+        }
+      } finally {
+        reader.releaseLock();
+      }
+
+      const emoji = catMode ? "🐾" : "📎";
+      const processedText = replaceMarkdownLinkText(aggregated.trim(), emoji);
+      const newResult: StoredResult = {
+        id: Date.now().toString(),
+        name,
+        manse,
+        gender,
+        report: processedText,
+        catMode,
+        model,
+        createdAt: new Date().toISOString(),
+      };
+      setResults((prev) => {
+        const updated = [...prev, newResult];
+        localStorage.setItem("sajuResults", JSON.stringify(updated));
+        return updated;
+      });
+      setSelectedResult(newResult);
+    } catch (err: any) {
+      if (controller.signal.aborted) {
+        setError(catMode ? "요청을 멈췄다냥." : "요청을 취소했습니다.");
+      } else {
+        console.error("API 요청 중 오류", err);
+        setError(
+          catMode ? "문제가 생겼냥. 다시 시도해달라옹." : "요청 중 오류가 발생했습니다."
+        );
+      }
+    } finally {
       setLoading(false);
-      return;
+      abortControllerRef.current = null;
     }
-    const data = await res.json();
-    const resultText = (data.result || data.error).trim();
-    const emoji = catMode ? "🐾" : "📎";
-    const processedText = replaceMarkdownLinkText(resultText, emoji);
-    const newResult: StoredResult = {
-      id: Date.now().toString(),
-      name,
-      manse,
-      gender,
-      report: processedText,
-      catMode,
-      model,
-      createdAt: new Date().toISOString(),
-    };
-    setResults((prev) => {
-      const updated = [...prev, newResult];
-      localStorage.setItem("sajuResults", JSON.stringify(updated));
-      return updated;
-    });
-    setSelectedResult(newResult);
-    setLoading(false);
+  };
+
+  const handleCancel = () => {
+    abortControllerRef.current?.abort();
   };
 
   return (
@@ -215,6 +300,13 @@ function HomeContent() {
             <span>냥냥체 인젝션</span>
           </button>
           <button
+            onClick={handleCancel}
+            className="rounded-lg border border-white/30 px-3 py-2 text-sm text-white/80 transition-colors hover:border-white/50 disabled:opacity-50"
+            disabled={!loading}
+          >
+            {catMode ? "멈춰!" : "중단"}
+          </button>
+          <button
             onClick={handleConfirm}
             className="flex-1 rounded-lg bg-gradient-to-r from-fuchsia-500 via-rose-500 to-amber-400 py-2 font-medium text-white shadow-lg transition-colors hover:from-fuchsia-600 hover:via-rose-600 hover:to-amber-500 disabled:opacity-50"
             disabled={!manse || !name || loading}
@@ -225,6 +317,24 @@ function HomeContent() {
         {error && (
           <div className="rounded-md bg-red-500/20 p-2 text-sm text-red-200" role="alert">
             {error}
+          </div>
+        )}
+        {loading && (
+          <div className="space-y-3 rounded-2xl bg-white/10 p-4 shadow-lg ring-1 ring-white/20" aria-live="polite">
+            <div className="flex items-center justify-between text-sm text-white/80">
+              <span>{catMode ? "실시간으로 분석중이다냥..." : "실시간으로 분석 중입니다."}</span>
+              <button
+                onClick={handleCancel}
+                className="rounded-md border border-white/30 px-2 py-1 text-xs hover:border-white/60"
+              >
+                {catMode ? "취소" : "중단"}
+              </button>
+            </div>
+            <div className="markdown leading-relaxed">
+              <ReactMarkdown remarkPlugins={[remarkSqueezeParagraphs]}>
+                {streamingReport || (catMode ? "답변을 준비하고 있다냥..." : "답변을 준비하고 있어요...")}
+              </ReactMarkdown>
+            </div>
           </div>
         )}
         <div ref={reportRef}>
