@@ -326,26 +326,39 @@ function HomeContent() {
         )}
         {manse && !selectedResult && (
           <div className="space-y-3 rounded-2xl bg-white/20 p-4 shadow-2xl backdrop-blur-md ring-1 ring-white/30">
-            <div className="flex flex-col gap-2 text-sm text-white/90 sm:flex-row sm:items-center sm:justify-between">
-              <label className="flex items-center gap-2">
+            <div className="flex rounded-xl bg-white/10 p-1 text-sm text-white/90 shadow-inner">
+              <label
+                className={`flex flex-1 cursor-pointer flex-col items-center rounded-lg px-3 py-2 text-center font-medium transition-colors ${
+                  inquiryType === "luck"
+                    ? "bg-white text-fuchsia-700 shadow-md"
+                    : "text-white/80 hover:bg-white/5"
+                }`}
+              >
                 <input
                   type="radio"
                   name="inquiry"
                   value="luck"
                   checked={inquiryType === "luck"}
                   onChange={() => setInquiryType("luck")}
-                  className="h-4 w-4 accent-fuchsia-500"
+                  className="sr-only"
                 />
-                <span>대운 해석 받기 (디폴트)</span>
+                <span>대운 해석 받기</span>
+                <span className="mt-1 text-[11px] font-normal opacity-80">(디폴트)</span>
               </label>
-              <label className="flex items-center gap-2">
+              <label
+                className={`flex flex-1 cursor-pointer flex-col items-center rounded-lg px-3 py-2 text-center font-medium transition-colors ${
+                  inquiryType === "question"
+                    ? "bg-white text-fuchsia-700 shadow-md"
+                    : "text-white/80 hover:bg-white/5"
+                }`}
+              >
                 <input
                   type="radio"
                   name="inquiry"
                   value="question"
                   checked={inquiryType === "question"}
                   onChange={() => setInquiryType("question")}
-                  className="h-4 w-4 accent-fuchsia-500"
+                  className="sr-only"
                 />
                 <span>추가 질문 입력</span>
               </label>
