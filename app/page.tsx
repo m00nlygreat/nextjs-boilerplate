@@ -9,6 +9,7 @@ import DateTimePicker from "@/app/components/DateTimePicker";
 import ManseDisplay from "@/app/components/ManseDisplay";
 import CatRain from "@/app/components/CatRain";
 import { replaceMarkdownLinkText } from "@/lib/markdown";
+import { getDayProfileVisuals } from "@/lib/ganzhi";
 
 function HomeContent() {
   const [name, setName] = useState("");
@@ -52,6 +53,15 @@ function HomeContent() {
   const [results, setResults] = useState<StoredResult[]>([]);
   const [selectedResult, setSelectedResult] =
     useState<StoredResult | null>(null);
+  interface StoredUser {
+    id: string;
+    name: string;
+    birthDate: string;
+    birthTime: string;
+    gender: string;
+    manse: ManseResult;
+  }
+  const [storedUsers, setStoredUsers] = useState<StoredUser[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [streamingReport, setStreamingReport] = useState("");
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -65,6 +75,13 @@ function HomeContent() {
         report: replaceMarkdownLinkText(r.report, r.catMode ? "🐾" : "📎"),
       }));
       setResults(processed);
+    }
+  }, []);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("sajuUsers");
+    if (stored) {
+      setStoredUsers(JSON.parse(stored));
     }
   }, []);
 
@@ -148,8 +165,40 @@ function HomeContent() {
     }
   };
 
+  const handleUserSelect = (user: StoredUser) => {
+    setName(user.name);
+    setBirthDate(user.birthDate);
+    setBirthTime(user.birthTime);
+    setGender(user.gender);
+    setManse(user.manse);
+    setSelectedResult(null);
+    setError(null);
+  };
+
   const handleConfirm = async () => {
     if (!manse || !gender || !name) return;
+    if (birthDate && birthTime) {
+      setStoredUsers((prev) => {
+        const exists = prev.some(
+          (user) =>
+            user.name === name &&
+            user.birthDate === birthDate &&
+            user.birthTime === birthTime
+        );
+        if (exists) return prev;
+        const newUser: StoredUser = {
+          id: Date.now().toString(),
+          name,
+          birthDate,
+          birthTime,
+          gender,
+          manse,
+        };
+        const updated = [...prev, newUser];
+        localStorage.setItem("sajuUsers", JSON.stringify(updated));
+        return updated;
+      });
+    }
     setError(null);
     setLoading(true);
     setStreamingReport("");
@@ -302,6 +351,37 @@ function HomeContent() {
             onChange={(e) => setName(e.target.value)}
             placeholder="이름을 입력하세요"
           />
+          {storedUsers.length > 0 && (
+            <div className="space-y-2">
+              <div className="text-sm text-white/80">최근 등록한 유저</div>
+              <div className="flex gap-3 overflow-x-auto pb-1">
+                {storedUsers.map((user) => {
+                  const { colorClasses, animalEmoji } = getDayProfileVisuals(
+                    user.manse.day
+                  );
+                  return (
+                    <button
+                      key={user.id}
+                      onClick={() => handleUserSelect(user)}
+                      className="flex shrink-0 flex-col items-center rounded-xl p-1 transition hover:bg-white/10"
+                      aria-label={`${user.name} 프로필 선택`}
+                    >
+                      <span
+                        className={`flex h-14 w-14 items-center justify-center rounded-full text-2xl shadow-md ${
+                          colorClasses || "bg-white/30 text-gray-900"
+                        }`}
+                      >
+                        {animalEmoji || "👤"}
+                      </span>
+                      <span className="mt-1 w-16 truncate text-center text-xs text-white/80">
+                        {user.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <DateTimePicker value={birthDate} onChange={setBirthDate} />
           <input
             type="time"
