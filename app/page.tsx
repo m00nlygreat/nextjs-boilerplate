@@ -449,7 +449,7 @@ function HomeContent() {
               >
                 ← 뒤로가기
               </button>
-              <ManseDisplay manse={selectedResult.manse} gender={selectedResult.gender} />
+              <ManseDisplay manse={selectedResult.manse} />
               <div className="markdown leading-relaxed">
                 <ReactMarkdown remarkPlugins={[remarkSqueezeParagraphs]}>
                   {selectedResult.report}
