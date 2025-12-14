@@ -300,13 +300,6 @@ function HomeContent() {
             <span>냥냥체 인젝션</span>
           </button>
           <button
-            onClick={handleCancel}
-            className="rounded-lg border border-white/30 px-3 py-2 text-sm text-white/80 transition-colors hover:border-white/50 disabled:opacity-50"
-            disabled={!loading}
-          >
-            {catMode ? "멈춰!" : "중단"}
-          </button>
-          <button
             onClick={handleConfirm}
             className="flex-1 rounded-lg bg-gradient-to-r from-fuchsia-500 via-rose-500 to-amber-400 py-2 font-medium text-white shadow-lg transition-colors hover:from-fuchsia-600 hover:via-rose-600 hover:to-amber-500 disabled:opacity-50"
             disabled={!manse || !name || loading}
