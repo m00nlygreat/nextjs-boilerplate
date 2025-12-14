@@ -8,7 +8,6 @@ import { useSearchParams } from "next/navigation";
 import DateTimePicker from "@/app/components/DateTimePicker";
 import ManseDisplay from "@/app/components/ManseDisplay";
 import CatRain from "@/app/components/CatRain";
-import { manseCalc } from "@/lib/manse";
 import { replaceMarkdownLinkText } from "@/lib/markdown";
 
 function HomeContent() {
@@ -57,17 +56,55 @@ function HomeContent() {
   }, []);
 
   useEffect(() => {
-    if (birthDate && birthTime && gender) {
-      const [y, m, d] = birthDate.split("-").map(Number);
-      const [hh, mm] = birthTime.split(":").map(Number);
-      const result = manseCalc(y, m, d, hh, mm);
-      setManse(result);
-      setSelectedResult(null);
-    } else {
+    if (!birthDate || !birthTime || !gender) {
       setManse(null);
       setSelectedResult(null);
+      return;
     }
-  }, [birthDate, birthTime, gender]);
+
+    setError(null);
+    const controller = new AbortController();
+    const fetchManse = async () => {
+      try {
+        const params = new URLSearchParams({
+          date: birthDate,
+          time: birthTime,
+          [gender === "여성" ? "female" : "male"]: "true",
+        });
+        const response = await fetch(`/api/manse?${params.toString()}`, {
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          throw new Error("사주 계산에 실패했습니다.");
+        }
+        const data = await response.json();
+        const ganzhi = data?.verbose?.ganzhi;
+        if (!ganzhi?.year || !ganzhi?.month || !ganzhi?.day || !ganzhi?.hour) {
+          throw new Error("사주 결과를 불러오지 못했습니다.");
+        }
+        setManse({
+          year: ganzhi.year,
+          month: ganzhi.month,
+          day: ganzhi.day,
+          hour: ganzhi.hour,
+        });
+        setSelectedResult(null);
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        console.error("manse API 오류", err);
+        setManse(null);
+        setSelectedResult(null);
+        setError(
+          catMode
+            ? "사주 계산에 문제가 생겼냥. 다시 시도해달라옹."
+            : "사주 계산 중 오류가 발생했습니다. 다시 시도해 주세요."
+        );
+      }
+    };
+
+    fetchManse();
+    return () => controller.abort();
+  }, [birthDate, birthTime, gender, catMode]);
 
   useEffect(() => {
     if (catMode) {
