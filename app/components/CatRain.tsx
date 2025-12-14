@@ -19,6 +19,8 @@ export default function CatRain({ active }: { active: boolean }) {
       // clear any existing cats and timers when inactive
       timeouts.current.forEach(clearTimeout);
       timeouts.current = [];
+      // Safe reset when effect runs due to active flag change
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCats([]);
       return;
     }
