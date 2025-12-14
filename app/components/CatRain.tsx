@@ -19,6 +19,8 @@ export default function CatRain({ active }: { active: boolean }) {
       // clear any existing cats and timers when inactive
       timeouts.current.forEach(clearTimeout);
       timeouts.current = [];
+      // Clearing the cat rain immediately keeps the UI responsive even if the component toggles rapidly.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCats([]);
       return;
     }
