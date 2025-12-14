@@ -34,9 +34,21 @@ export async function POST(req: Request) {
       } as any
     );
 
-    const stream =
-      (response as unknown as { toReadableStream: () => ReadableStream }).
-        toReadableStream();
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const event of response as any) {
+            const payload = JSON.stringify(event);
+            controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
+          }
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
+        } catch (streamErr) {
+          controller.error(streamErr);
+        }
+      },
+    });
     return new NextResponse(stream, {
       headers: {
         "Content-Type": "text/event-stream; charset=utf-8",
