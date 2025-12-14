@@ -343,6 +343,37 @@ function HomeContent() {
             꽤 잘맞는 AI 사주 분석
           </h1>
         </div>
+        {storedUsers.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-sm text-white/80">최근 등록한 유저</div>
+            <div className="flex gap-3 overflow-x-auto pb-1">
+              {storedUsers.map((user) => {
+                const { colorClasses, animalEmoji } = getDayProfileVisuals(
+                  user.manse.day
+                );
+                return (
+                  <button
+                    key={user.id}
+                    onClick={() => handleUserSelect(user)}
+                    className="flex shrink-0 flex-col items-center rounded-xl p-1 transition hover:bg-white/10"
+                    aria-label={`${user.name} 프로필 선택`}
+                  >
+                    <span
+                      className={`flex h-14 w-14 items-center justify-center rounded-full text-2xl shadow-md ${
+                        colorClasses || "bg-white/30 text-gray-900"
+                      }`}
+                    >
+                      {animalEmoji || "👤"}
+                    </span>
+                    <span className="mt-1 w-16 truncate text-center text-xs text-white/80">
+                      {user.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <div className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30">
           <input
             type="text"
@@ -351,37 +382,6 @@ function HomeContent() {
             onChange={(e) => setName(e.target.value)}
             placeholder="이름을 입력하세요"
           />
-          {storedUsers.length > 0 && (
-            <div className="space-y-2">
-              <div className="text-sm text-white/80">최근 등록한 유저</div>
-              <div className="flex gap-3 overflow-x-auto pb-1">
-                {storedUsers.map((user) => {
-                  const { colorClasses, animalEmoji } = getDayProfileVisuals(
-                    user.manse.day
-                  );
-                  return (
-                    <button
-                      key={user.id}
-                      onClick={() => handleUserSelect(user)}
-                      className="flex shrink-0 flex-col items-center rounded-xl p-1 transition hover:bg-white/10"
-                      aria-label={`${user.name} 프로필 선택`}
-                    >
-                      <span
-                        className={`flex h-14 w-14 items-center justify-center rounded-full text-2xl shadow-md ${
-                          colorClasses || "bg-white/30 text-gray-900"
-                        }`}
-                      >
-                        {animalEmoji || "👤"}
-                      </span>
-                      <span className="mt-1 w-16 truncate text-center text-xs text-white/80">
-                        {user.name}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
           <DateTimePicker value={birthDate} onChange={setBirthDate} />
           <input
             type="time"
