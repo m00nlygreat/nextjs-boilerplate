@@ -10,15 +10,26 @@ import ManseDisplay from "@/app/components/ManseDisplay";
 import CatRain from "@/app/components/CatRain";
 import { replaceMarkdownLinkText } from "@/lib/markdown";
 
+type LuckCycle = {
+  startAge?: number | string | null;
+  startDate?: string | null;
+  ganzhi: string;
+};
+
+type ManseData = {
+  year: string;
+  month: string;
+  day: string;
+  hour: string;
+  cycles: LuckCycle[];
+};
+
 function HomeContent() {
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
   const [gender, setGender] = useState("");
-  const [manse, setManse] =
-    useState<{ year: string; month: string; day: string; hour: string } | null>(
-      null
-    );
+  const [manse, setManse] = useState<ManseData | null>(null);
   const [loading, setLoading] = useState(false);
   const [catMode, setCatMode] = useState(false);
   const [extraQuestion, setExtraQuestion] = useState("");
@@ -29,7 +40,7 @@ function HomeContent() {
   interface StoredResult {
     id: string;
     name: string;
-    manse: { year: string; month: string; day: string; hour: string };
+    manse: ManseData;
     gender: string;
     report: string;
     catMode: boolean;
@@ -49,6 +60,10 @@ function HomeContent() {
       const parsed: StoredResult[] = JSON.parse(stored);
       const processed = parsed.map((r) => ({
         ...r,
+        manse: {
+          ...r.manse,
+          cycles: r.manse?.cycles || [],
+        },
         report: replaceMarkdownLinkText(r.report, r.catMode ? "🐾" : "📎"),
       }));
       setResults(processed);
@@ -82,11 +97,21 @@ function HomeContent() {
         if (!ganzhi?.year || !ganzhi?.month || !ganzhi?.day || !ganzhi?.hour) {
           throw new Error("사주 결과를 불러오지 못했습니다.");
         }
+        const cycles: LuckCycle[] = Array.isArray(data?.cycles)
+          ? data.cycles
+              .filter((cycle: any) => cycle?.ganzhi)
+              .map((cycle: any) => ({
+                startAge: cycle.start_age ?? cycle.startAge ?? null,
+                startDate: cycle.start_date ?? cycle.startDate ?? null,
+                ganzhi: cycle.ganzhi,
+              }))
+          : [];
         setManse({
           year: ganzhi.year,
           month: ganzhi.month,
           day: ganzhi.day,
           hour: ganzhi.hour,
+          cycles,
         });
         setSelectedResult(null);
       } catch (err) {
@@ -143,7 +168,20 @@ function HomeContent() {
     const controller = new AbortController();
     abortControllerRef.current = controller;
     setSelectedResult(null);
-    const birthInfo = `${manse.hour}시 ${manse.day}일 ${manse.month}월 ${manse.year}년, 성별: ${gender}`;
+    const birthInfo = `${manse.year}년 ${manse.month}월 ${manse.day}일 ${manse.hour}시 / ${gender}`;
+    const luckCycleLines = manse.cycles
+      .filter((cycle) => cycle.ganzhi)
+      .map((cycle, index) => {
+        const startYear = cycle.startDate?.slice(0, 4);
+        const startAge =
+          cycle.startAge !== undefined && cycle.startAge !== null
+            ? `${cycle.startAge}세~`
+            : "";
+        const startInfo = startYear ? `${startYear}년~` : startAge;
+        const suffix = startInfo ? `(${startInfo})` : "";
+        return `${index + 1}대운${suffix}: ${cycle.ganzhi}`;
+      })
+      .join("\n");
     const url = `/api/saju?model=${encodeURIComponent(model)}${
       search ? "&search=true" : ""
     }`;
@@ -151,7 +189,13 @@ function HomeContent() {
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ birthInfo, catMode, question: extraQuestion }),
+        body: JSON.stringify({
+          birthInfo,
+          catMode,
+          question: extraQuestion,
+          luckCycles: manse.cycles,
+          luckCycleLines,
+        }),
         signal: controller.signal,
       });
       if (!res.ok) {
