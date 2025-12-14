@@ -15,13 +15,26 @@ function HomeContent() {
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
   const [gender, setGender] = useState("");
-  const [manse, setManse] =
-    useState<{ year: string; month: string; day: string; hour: string } | null>(
-      null
-    );
+  type LuckCycle = {
+    start_age: number;
+    start_date: string;
+    ganzhi: string;
+    ganzhi_kor: string;
+  };
+
+  type ManseResult = {
+    year: string;
+    month: string;
+    day: string;
+    hour: string;
+    cycles?: LuckCycle[];
+  };
+
+  const [manse, setManse] = useState<ManseResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [catMode, setCatMode] = useState(false);
   const [extraQuestion, setExtraQuestion] = useState("");
+  const [inquiryType, setInquiryType] = useState<"luck" | "question">("luck");
   const reportRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
   const model = searchParams.get("model") || "gpt-5-mini";
@@ -29,7 +42,7 @@ function HomeContent() {
   interface StoredResult {
     id: string;
     name: string;
-    manse: { year: string; month: string; day: string; hour: string };
+    manse: ManseResult;
     gender: string;
     report: string;
     catMode: boolean;
@@ -87,6 +100,7 @@ function HomeContent() {
           month: ganzhi.month,
           day: ganzhi.day,
           hour: ganzhi.hour,
+          cycles: data?.cycles,
         });
         setSelectedResult(null);
       } catch (err) {
@@ -151,7 +165,13 @@ function HomeContent() {
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ birthInfo, catMode, question: extraQuestion }),
+        body: JSON.stringify({
+          birthInfo,
+          catMode,
+          question: extraQuestion,
+          inquiryType,
+          luckCycles: inquiryType === "luck" ? manse.cycles : undefined,
+        }),
         signal: controller.signal,
       });
       if (!res.ok) {
@@ -305,13 +325,51 @@ function HomeContent() {
           </div>
         )}
         {manse && !selectedResult && (
-          <input
-            type="text"
-            className="w-full rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-            value={extraQuestion}
-            onChange={(e) => setExtraQuestion(e.target.value)}
-            placeholder={catMode ? "추가로 궁금한게 있으면 적어보라옹😽" : "혹시 추가로 궁금한 게 있으면 적어보세요"}
-          />
+          <div className="space-y-3 rounded-2xl bg-white/20 p-4 shadow-2xl backdrop-blur-md ring-1 ring-white/30">
+            <div className="flex flex-col gap-2 text-sm text-white/90 sm:flex-row sm:items-center sm:justify-between">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="inquiry"
+                  value="luck"
+                  checked={inquiryType === "luck"}
+                  onChange={() => setInquiryType("luck")}
+                  className="h-4 w-4 accent-fuchsia-500"
+                />
+                <span>대운 해석 받기 (디폴트)</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="inquiry"
+                  value="question"
+                  checked={inquiryType === "question"}
+                  onChange={() => setInquiryType("question")}
+                  className="h-4 w-4 accent-fuchsia-500"
+                />
+                <span>추가 질문 입력</span>
+              </label>
+            </div>
+            {inquiryType === "question" ? (
+              <input
+                type="text"
+                className="w-full rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                value={extraQuestion}
+                onChange={(e) => setExtraQuestion(e.target.value)}
+                placeholder={
+                  catMode
+                    ? "추가로 궁금한게 있으면 적어보라옹😽"
+                    : "혹시 추가로 궁금한 게 있으면 적어보세요"
+                }
+              />
+            ) : (
+              <div className="rounded-lg bg-white/10 p-3 text-sm text-white/80">
+                {catMode
+                  ? "10년마다 바뀌는 대운 흐름을 분석해서 운세 코멘트를 덧붙일게!"
+                  : "10년 단위 대운 흐름을 분석해 운세 코멘트를 추가로 제공해요."}
+              </div>
+            )}
+          </div>
         )}
         <div className="flex gap-2">
           <button
