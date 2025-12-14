@@ -230,7 +230,7 @@ function HomeContent() {
   return (
     <main className="flex min-h-screen items-center justify-center p-4 text-white">
       <CatRain active={catMode} />
-      <div className="w-full max-w-md space-y-6">
+      <div className="w-full max-w-[600px] space-y-6">
         <div className="flex flex-col items-center space-y-2">
           <Image src="/fortune.svg" alt="사주 아이콘" width={64} height={64} />
           <h1 className="text-3xl font-extrabold text-center bg-gradient-to-r from-yellow-200 via-pink-200 to-fuchsia-300 bg-clip-text text-transparent drop-shadow">
