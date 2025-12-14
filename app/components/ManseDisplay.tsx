@@ -56,7 +56,7 @@ export default function ManseDisplay({ manse, gender }: ManseDisplayProps) {
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-4 gap-3 text-gray-100">
+      <div className="grid grid-cols-4 justify-items-center gap-3 text-gray-100">
         {parts.map((part) => {
           const stem = part.value.charAt(0);
           const branch = part.value.charAt(1);
@@ -65,15 +65,15 @@ export default function ManseDisplay({ manse, gender }: ManseDisplayProps) {
           return (
             <div
               key={part.label}
-              className="flex flex-col items-stretch text-center space-y-2"
+              className="flex w-16 flex-col items-center space-y-2 text-center sm:w-20"
             >
               <div
-                className={`${stemClasses} w-full rounded-xl p-1 text-3xl sm:text-4xl font-bold aspect-square flex items-center justify-center`}
+                className={`${stemClasses} flex aspect-square w-full items-center justify-center rounded-xl p-1 text-2xl font-bold sm:text-3xl`}
               >
                 {stem}
               </div>
               <div
-                className={`${branchClasses} w-full rounded-xl p-1 text-3xl sm:text-4xl font-bold aspect-square flex items-center justify-center`}
+                className={`${branchClasses} flex aspect-square w-full items-center justify-center rounded-xl p-1 text-2xl font-bold sm:text-3xl`}
               >
                 {branch}
               </div>
