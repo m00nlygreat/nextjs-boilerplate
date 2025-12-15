@@ -43,8 +43,11 @@ export async function POST(req: Request) {
           ? `${birthInfo}\n추가 질문: ${question || "추가 질문 없음"}`
           : `${birthInfo}\n대운(10년) 정보:\n${formattedLuckCycles || "대운 정보 없음"}`;
 
+    const searchInstruction = search
+      ? "웹 검색 프리뷰 도구가 활성화되어 있으니 최신 정보가 필요하면 활용하세요. "
+      : "";
     const baseSystemPrompt =
-      `당신은 전문 사주 명리학자입니다. 다음 사주 원국에 대해 ${
+      `당신은 전문 사주 명리학자입니다. ${searchInstruction}다음 사주 원국에 대해 ${
         search ? "한국어로 웹 전반을 검색해보고 " : ""
       }전반적 성격/직업/재물/연애/장점/단점/조언 등의 항목을 전문적으로 분석해주세요.` +
       (catMode
