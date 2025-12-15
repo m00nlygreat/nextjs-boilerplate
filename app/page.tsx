@@ -48,8 +48,8 @@ function HomeContent() {
     name: string;
     manse: ManseResult;
     gender: string;
-    birthDate?: string;
-    birthTime?: string;
+    birthDate: string;
+    birthTime: string;
     report: string;
     catMode: boolean;
     model: string;
@@ -77,6 +77,8 @@ function HomeContent() {
       const parsed: StoredResult[] = JSON.parse(stored);
       const processed = parsed.map((r) => ({
         ...r,
+        birthDate: r.birthDate ?? "",
+        birthTime: r.birthTime ?? "",
         report: replaceMarkdownLinkText(r.report, r.catMode ? "🐾" : "📎"),
       }));
       setResults(processed);
@@ -377,13 +379,15 @@ function HomeContent() {
 
       const emoji = catMode ? "🐾" : "📎";
       const processedText = replaceMarkdownLinkText(aggregated.trim(), emoji);
+      const storedBirthDate = birthDate || manseSignature?.split("|")[0] || "";
+      const storedBirthTime = birthTime || manseSignature?.split("|")[1] || "";
       const newResult: StoredResult = {
         id: Date.now().toString(),
         name,
         manse,
         gender,
-        birthDate,
-        birthTime,
+        birthDate: storedBirthDate,
+        birthTime: storedBirthTime,
         report: processedText,
         catMode,
         model,
