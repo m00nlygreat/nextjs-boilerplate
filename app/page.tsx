@@ -538,12 +538,12 @@ function HomeContent() {
                 {catMode ? "취소" : "중단"}
               </button>
             </div>
-            <div className="markdown leading-relaxed">
-              <ReactMarkdown remarkPlugins={[remarkSqueezeParagraphs]}>
-                {streamingReport || (catMode ? "답변을 준비하고 있다냥..." : "답변을 준비하고 있어요...")}
-              </ReactMarkdown>
+              <div className="markdown leading-relaxed">
+                <ReactMarkdown remarkPlugins={[remarkSqueezeParagraphs]}>
+                  {streamingReport || ""}
+                </ReactMarkdown>
+              </div>
             </div>
-          </div>
         )}
         <div ref={reportRef}>
           {selectedResult ? (
@@ -567,36 +567,54 @@ function HomeContent() {
           ) : (
             results.length > 0 && (
               <div className="space-y-2 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30">
-                {results.map((r) => (
-                  <div
-                    key={r.id}
-                    onClick={() => {
-                      setSelectedResult(r);
-                      setCatMode(r.catMode);
-                    }}
-                    className="flex w-full items-center justify-between rounded-md bg-white/10 px-4 py-2 hover:bg-white/20 cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2 font-medium">
-                      <span>{r.catMode ? "😺" : "📄"}</span>
-                      <span>{r.name}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="text-xs text-white/70">
-                        {new Date(r.createdAt).toLocaleString()}
+                {results.map((r) => {
+                  const { colorClasses, animalEmoji } = getDayProfileVisuals(
+                    r.manse.day
+                  );
+                  const genderIcon = r.gender === "여성" ? "♀" : "♂";
+                  const genderColor =
+                    r.gender === "여성" ? "text-pink-300" : "text-sky-300";
+                  return (
+                    <div
+                      key={r.id}
+                      onClick={() => {
+                        setSelectedResult(r);
+                        setCatMode(r.catMode);
+                      }}
+                      className="flex w-full items-center justify-between rounded-md bg-white/10 px-4 py-2 hover:bg-white/20 cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2 font-medium">
+                        <span
+                          className={`flex h-6 w-6 items-center justify-center rounded-full text-base shadow ${
+                            colorClasses || "bg-white/30 text-gray-900"
+                          }`}
+                        >
+                          {animalEmoji || "👤"}
+                        </span>
+                        <span className="flex items-center gap-1 text-sm">
+                          <span>{r.name}</span>
+                          <span className={`${genderColor}`}>{genderIcon}</span>
+                          {r.catMode && <span aria-hidden>🐱</span>}
+                        </span>
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(r.id);
-                        }}
-                        className="rounded-md px-2 py-1 hover:bg-white/30"
-                        aria-label="결과 삭제"
-                      >
-                        🗑️
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <div className="text-xs text-white/70">
+                          {new Date(r.createdAt).toLocaleString()}
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(r.id);
+                          }}
+                          className="rounded-md px-2 py-1 hover:bg-white/30"
+                          aria-label="결과 삭제"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )
           )}
