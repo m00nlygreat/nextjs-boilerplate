@@ -37,8 +37,11 @@ function buildSystemPrompt({
   inquiryType: InquiryType;
   search: boolean;
 }) {
+  const searchInstruction = search
+    ? "웹 검색 프리뷰 도구가 활성화되어 있으니 최신 정보가 필요하면 활용하세요. "
+    : "";
   const baseSystemPrompt =
-    `당신은 전문 사주 명리학자입니다. 다음 사주 원국에 대해 ${
+    `당신은 전문 사주 명리학자입니다. ${searchInstruction}다음 사주 원국에 대해 ${
       search ? "한국어로 웹 전반을 검색해보고 " : ""
     }전반적 성격/직업/재물/연애/장점/단점/조언 등의 항목을 전문적으로 분석해주세요.` +
     (catMode
@@ -686,6 +689,29 @@ function HomeContent() {
           )}
           {activeTab === "debug" && debugMode && (
             <div className="space-y-4">
+              <div className="space-y-1 rounded-lg bg-white/10 px-4 py-3 text-sm text-white/80 ring-1 ring-white/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-white/70">검색 도구</p>
+                    <p className="font-medium">
+                      {search ? "웹 검색 도구 활성화" : "웹 검색 도구 미사용"}
+                    </p>
+                  </div>
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                      search
+                        ? "bg-emerald-500/20 text-emerald-100 ring-emerald-400/40"
+                        : "bg-white/5 text-white/70 ring-white/30"
+                    }`}
+                  >
+                    {search ? "ON" : "OFF"}
+                  </span>
+                </div>
+                <p className="text-[11px] text-white/60">
+                  URL에 <code>search=true</code>가 포함되면 웹 검색 프리뷰 도구를 요청에 추가하고, 시스템 프롬프트에 최신 정보 검색을 안내하는 지침을 더합니다.
+                </p>
+              </div>
+
               <div className="space-y-2">
                 <label className="block text-left text-xs uppercase tracking-wide text-white/70">
                   모델
