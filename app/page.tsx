@@ -78,7 +78,15 @@ function buildUserPrompt({
         )
         .map(
           (cycle) =>
-            `- ${cycle.start_age}세 시작 (${cycle.start_date || "시작일 미상"}): ${cycle.ganzhi} (${cycle.ganzhi_kor})`
+            {
+              const startYear =
+                typeof cycle.start_date === "string"
+                  ? cycle.start_date.match(/\d{4}/)?.[0]
+                  : undefined;
+              const approxAge = Math.round(cycle.start_age);
+
+              return `- ${startYear ? `${startYear}년` : "시작 연도 미상"} (약 ${approxAge}세), ${cycle.ganzhi} (${cycle.ganzhi_kor}) 대운`;
+            }
         )
         .join("\n")
     : "";
