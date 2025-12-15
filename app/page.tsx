@@ -391,7 +391,7 @@ function HomeContent() {
                         event.stopPropagation();
                         handleUserDelete(user.id);
                       }}
-                      className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-md ring-2 ring-white/60"
+                      className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-bold text-red-600 shadow-md ring-1 ring-red-300"
                       aria-label={`${user.name} 프로필 삭제`}
                     >
                       ✕
