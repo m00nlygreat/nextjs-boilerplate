@@ -345,7 +345,6 @@ function HomeContent() {
         </div>
         {storedUsers.length > 0 && (
           <div className="space-y-2">
-            <div className="text-sm text-white/80">최근 등록한 유저</div>
             <div className="flex gap-3 overflow-x-auto pb-1">
               {storedUsers.map((user) => {
                 const { colorClasses, animalEmoji } = getDayProfileVisuals(
