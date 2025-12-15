@@ -48,6 +48,8 @@ function HomeContent() {
     name: string;
     manse: ManseResult;
     gender: string;
+    birthDate?: string;
+    birthTime?: string;
     report: string;
     catMode: boolean;
     model: string;
@@ -156,6 +158,43 @@ function HomeContent() {
     setActiveTab("manse");
     setSelectedResult(null);
     setError(null);
+  };
+
+  const renderManseProfile = (
+    displayManse: ManseResult,
+    profileName: string,
+    profileGender: string,
+    profileBirthDate?: string,
+    profileBirthTime?: string
+  ) => {
+    const { colorClasses, animalEmoji } = getDayProfileVisuals(displayManse.day);
+    const genderIcon = profileGender === "여성" ? "♀" : "♂";
+    const genderColor =
+      profileGender === "여성" ? "text-pink-200" : "text-sky-200";
+    const hasBirthInfo = Boolean(profileBirthDate && profileBirthTime);
+
+    return (
+      <div className="flex items-center justify-center gap-3 rounded-lg bg-white/10 px-4 py-3 text-white shadow-inner ring-1 ring-white/10">
+        <span
+          className={`flex h-11 w-11 items-center justify-center rounded-full text-xl shadow ${
+            colorClasses || "bg-white/30 text-gray-900"
+          }`}
+        >
+          {animalEmoji || "👤"}
+        </span>
+        <div className="flex flex-wrap items-baseline gap-2 text-left">
+          <span className="text-lg font-semibold">{profileName || "이름 미입력"}</span>
+          <span className={`${genderColor}`} aria-label={profileGender || "성별"}>
+            {profileGender ? genderIcon : "?"}
+          </span>
+          <span className="text-sm text-white/70">
+            {hasBirthInfo
+              ? `${profileBirthDate} ${profileBirthTime}`
+              : "생년월일시 미입력"}
+          </span>
+        </div>
+      </div>
+    );
   };
 
   const handleManseLookup = async () => {
@@ -343,6 +382,8 @@ function HomeContent() {
         name,
         manse,
         gender,
+        birthDate,
+        birthTime,
         report: processedText,
         catMode,
         model,
@@ -502,7 +543,16 @@ function HomeContent() {
           {activeTab === "manse" && (
             <div className="space-y-4 text-center">
               {manse ? (
-                <ManseDisplay manse={manse} />
+                <>
+                  {renderManseProfile(
+                    manse,
+                    name,
+                    gender,
+                    birthDate,
+                    birthTime
+                  )}
+                  <ManseDisplay manse={manse} />
+                </>
               ) : (
                 <div className="rounded-lg bg-white/10 p-4 text-sm text-white/80">
                   {catMode
@@ -638,6 +688,13 @@ function HomeContent() {
               >
                 ← 뒤로가기
               </button>
+              {renderManseProfile(
+                selectedResult.manse,
+                selectedResult.name,
+                selectedResult.gender,
+                selectedResult.birthDate,
+                selectedResult.birthTime
+              )}
               <ManseDisplay manse={selectedResult.manse} />
               <div className="markdown leading-relaxed">
                 <ReactMarkdown remarkPlugins={[remarkSqueezeParagraphs]}>
