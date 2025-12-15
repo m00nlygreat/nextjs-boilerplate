@@ -112,12 +112,13 @@ function HomeContent() {
   const searchParams = useSearchParams();
   const debugMode = searchParams.get("debug") === "true";
   const initialModel = searchParams.get("model") || "gpt-5-mini";
+  const initialSearchEnabled = searchParams.get("search") === "true";
   const [model, setModel] = useState(initialModel);
   const [systemPrompt, setSystemPrompt] = useState("");
   const [userPrompt, setUserPrompt] = useState("");
   const [systemPromptDirty, setSystemPromptDirty] = useState(false);
   const [userPromptDirty, setUserPromptDirty] = useState(false);
-  const search = searchParams.get("search") === "true";
+  const [searchEnabled, setSearchEnabled] = useState(initialSearchEnabled);
   interface StoredResult {
     id: string;
     name: string;
@@ -147,8 +148,8 @@ function HomeContent() {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const defaultSystemPrompt = useMemo(
-    () => buildSystemPrompt({ catMode, inquiryType, search }),
-    [catMode, inquiryType, search]
+    () => buildSystemPrompt({ catMode, inquiryType, search: searchEnabled }),
+    [catMode, inquiryType, searchEnabled]
   );
 
   const defaultUserPrompt = useMemo(
@@ -393,7 +394,7 @@ function HomeContent() {
     setSelectedResult(null);
     const birthInfo = `${manse.hour}시 ${manse.day}일 ${manse.month}월 ${manse.year}년, 성별: ${gender}`;
     const url = `/api/saju?model=${encodeURIComponent(model)}${
-      search ? "&search=true" : ""
+      searchEnabled ? "&search=true" : ""
     }`;
     const finalSystemPrompt = systemPrompt.trim() || defaultSystemPrompt;
     const finalUserPrompt = userPrompt.trim() || defaultUserPrompt;
@@ -694,21 +695,31 @@ function HomeContent() {
                   <div>
                     <p className="text-xs uppercase tracking-wide text-white/70">검색 도구</p>
                     <p className="font-medium">
-                      {search ? "웹 검색 도구 활성화" : "웹 검색 도구 미사용"}
+                      {searchEnabled ? "웹 검색 도구 활성화" : "웹 검색 도구 미사용"}
                     </p>
                   </div>
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                      search
-                        ? "bg-emerald-500/20 text-emerald-100 ring-emerald-400/40"
-                        : "bg-white/5 text-white/70 ring-white/30"
+                  <button
+                    type="button"
+                    aria-pressed={searchEnabled}
+                    onClick={() => setSearchEnabled((prev) => !prev)}
+                    className={`flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ring-1 transition ${
+                      searchEnabled
+                        ? "bg-emerald-500/20 text-emerald-100 ring-emerald-400/40 hover:bg-emerald-500/30"
+                        : "bg-white/5 text-white/70 ring-white/30 hover:bg-white/10"
                     }`}
                   >
-                    {search ? "ON" : "OFF"}
-                  </span>
+                    <span
+                      className={`flex h-5 w-10 items-center rounded-full bg-white/20 p-[2px] transition ${
+                        searchEnabled ? "justify-end bg-emerald-500/50" : "justify-start"
+                      }`}
+                    >
+                      <span className="h-4 w-4 rounded-full bg-white shadow-sm"></span>
+                    </span>
+                    {searchEnabled ? "ON" : "OFF"}
+                  </button>
                 </div>
                 <p className="text-[11px] text-white/60">
-                  URL에 <code>search=true</code>가 포함되면 웹 검색 프리뷰 도구를 요청에 추가하고, 시스템 프롬프트에 최신 정보 검색을 안내하는 지침을 더합니다.
+                  토글을 켜면 웹 검색 프리뷰 도구를 요청에 추가하고, 시스템 프롬프트에 최신 정보 검색 지침을 포함합니다. URL에 <code>search=true</code>를 넣으면 초기값을 바로 ON으로 설정할 수 있습니다.
                 </p>
               </div>
 
