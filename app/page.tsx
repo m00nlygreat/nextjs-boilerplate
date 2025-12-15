@@ -32,6 +32,9 @@ function HomeContent() {
   };
 
   const [manse, setManse] = useState<ManseResult | null>(null);
+  const [manseSignature, setManseSignature] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"input" | "manse">("input");
+  const [manseLoading, setManseLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [catMode, setCatMode] = useState(false);
   const [extraQuestion, setExtraQuestion] = useState("");
@@ -45,6 +48,8 @@ function HomeContent() {
     name: string;
     manse: ManseResult;
     gender: string;
+    birthDate?: string;
+    birthTime?: string;
     report: string;
     catMode: boolean;
     model: string;
@@ -86,56 +91,23 @@ function HomeContent() {
   }, []);
 
   useEffect(() => {
-    if (!birthDate || !birthTime || !gender) {
+    const signature =
+      birthDate && birthTime && gender
+        ? `${birthDate}|${birthTime}|${gender}`
+        : null;
+
+    if (!signature) {
       setManse(null);
+      setManseSignature(null);
       setSelectedResult(null);
       return;
     }
 
-    setError(null);
-    const controller = new AbortController();
-    const fetchManse = async () => {
-      try {
-        const params = new URLSearchParams({
-          date: birthDate,
-          time: birthTime,
-          [gender === "여성" ? "female" : "male"]: "true",
-        });
-        const response = await fetch(`/api/manse?${params.toString()}`, {
-          signal: controller.signal,
-        });
-        if (!response.ok) {
-          throw new Error("사주 계산에 실패했습니다.");
-        }
-        const data = await response.json();
-        const ganzhi = data?.verbose?.ganzhi;
-        if (!ganzhi?.year || !ganzhi?.month || !ganzhi?.day || !ganzhi?.hour) {
-          throw new Error("사주 결과를 불러오지 못했습니다.");
-        }
-        setManse({
-          year: ganzhi.year,
-          month: ganzhi.month,
-          day: ganzhi.day,
-          hour: ganzhi.hour,
-          cycles: data?.cycles,
-        });
-        setSelectedResult(null);
-      } catch (err) {
-        if (controller.signal.aborted) return;
-        console.error("manse API 오류", err);
-        setManse(null);
-        setSelectedResult(null);
-        setError(
-          catMode
-            ? "사주 계산에 문제가 생겼냥. 다시 시도해달라옹."
-            : "사주 계산 중 오류가 발생했습니다. 다시 시도해 주세요."
-        );
-      }
-    };
-
-    fetchManse();
-    return () => controller.abort();
-  }, [birthDate, birthTime, gender, catMode]);
+    if (manseSignature && signature !== manseSignature) {
+      setManse(null);
+      setSelectedResult(null);
+    }
+  }, [birthDate, birthTime, gender, manseSignature]);
 
   useEffect(() => {
     if (catMode) {
@@ -182,8 +154,104 @@ function HomeContent() {
     setBirthTime(user.birthTime);
     setGender(user.gender);
     setManse(user.manse);
+    setManseSignature(`${user.birthDate}|${user.birthTime}|${user.gender}`);
+    setActiveTab("manse");
     setSelectedResult(null);
     setError(null);
+  };
+
+  const renderManseProfile = (
+    displayManse: ManseResult,
+    profileName: string,
+    profileGender: string,
+    profileBirthDate?: string,
+    profileBirthTime?: string
+  ) => {
+    const { colorClasses, animalEmoji } = getDayProfileVisuals(displayManse.day);
+    const genderIcon = profileGender === "여성" ? "♀" : "♂";
+    const genderColor =
+      profileGender === "여성" ? "text-pink-200" : "text-sky-200";
+    const hasBirthInfo = Boolean(profileBirthDate && profileBirthTime);
+
+    return (
+      <div className="flex items-center justify-center gap-3 rounded-lg bg-white/10 px-4 py-3 text-white shadow-inner ring-1 ring-white/10">
+        <span
+          className={`flex h-11 w-11 items-center justify-center rounded-full text-xl shadow ${
+            colorClasses || "bg-white/30 text-gray-900"
+          }`}
+        >
+          {animalEmoji || "👤"}
+        </span>
+        <div className="flex flex-wrap items-baseline gap-2 text-left">
+          <span className="text-lg font-semibold">{profileName || "이름 미입력"}</span>
+          <span className={`${genderColor}`} aria-label={profileGender || "성별"}>
+            {profileGender ? genderIcon : "?"}
+          </span>
+          <span className="text-sm text-white/70">
+            {hasBirthInfo
+              ? `${profileBirthDate} ${profileBirthTime}`
+              : "생년월일시 미입력"}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  const handleManseLookup = async () => {
+    if (!birthDate || !birthTime || !gender) {
+      setError(
+        catMode
+          ? "생년월일시와 성별을 모두 입력해달라옹."
+          : "생년월일시와 성별을 모두 입력해 주세요."
+      );
+      return;
+    }
+
+    setError(null);
+    setManseLoading(true);
+    setActiveTab("manse");
+    const controller = new AbortController();
+
+    try {
+      const params = new URLSearchParams({
+        date: birthDate,
+        time: birthTime,
+        [gender === "여성" ? "female" : "male"]: "true",
+      });
+      const response = await fetch(`/api/manse?${params.toString()}`, {
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        throw new Error("사주 계산에 실패했습니다.");
+      }
+      const data = await response.json();
+      const ganzhi = data?.verbose?.ganzhi;
+      if (!ganzhi?.year || !ganzhi?.month || !ganzhi?.day || !ganzhi?.hour) {
+        throw new Error("사주 결과를 불러오지 못했습니다.");
+      }
+      setManse({
+        year: ganzhi.year,
+        month: ganzhi.month,
+        day: ganzhi.day,
+        hour: ganzhi.hour,
+        cycles: data?.cycles,
+      });
+      setManseSignature(`${birthDate}|${birthTime}|${gender}`);
+      setSelectedResult(null);
+    } catch (err) {
+      if (controller.signal.aborted) return;
+      console.error("manse API 오류", err);
+      setManse(null);
+      setSelectedResult(null);
+      setManseSignature(null);
+      setError(
+        catMode
+          ? "사주 계산에 문제가 생겼냥. 다시 시도해달라옹."
+          : "사주 계산 중 오류가 발생했습니다. 다시 시도해 주세요."
+      );
+    } finally {
+      setManseLoading(false);
+    }
   };
 
   const handleConfirm = async () => {
@@ -314,6 +382,8 @@ function HomeContent() {
         name,
         manse,
         gender,
+        birthDate,
+        birthTime,
         report: processedText,
         catMode,
         model,
@@ -403,35 +473,96 @@ function HomeContent() {
           </div>
         )}
         <div className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30">
-          <input
-            type="text"
-            className="w-full rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="이름을 입력하세요"
-          />
-          <DateTimePicker value={birthDate} onChange={setBirthDate} />
-          <input
-            type="time"
-            className="block w-full min-w-0 appearance-none rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-            value={birthTime}
-            onChange={(e) => setBirthTime(e.target.value)}
-          />
-          <select
-            className="w-full rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-            value={gender}
-            onChange={(e) => setGender(e.target.value)}
-          >
-            <option value="">성별을 선택하세요</option>
-            <option value="남성">남성</option>
-            <option value="여성">여성</option>
-          </select>
-        </div>
-        {manse && !selectedResult && (
-          <div className="space-y-4 rounded-2xl bg-white/20 p-6 shadow-2xl backdrop-blur-md ring-1 ring-white/30 text-center">
-            <ManseDisplay manse={manse}/>
+          <div className="flex rounded-xl bg-white/10 p-1 text-sm text-white/90 shadow-inner">
+            <button
+              type="button"
+              onClick={() => setActiveTab("input")}
+              className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 font-medium transition-colors ${
+                activeTab === "input"
+                  ? "bg-white text-fuchsia-700 shadow-md"
+                  : "text-white/80 hover:bg-white/5"
+              }`}
+            >
+              생년월일 입력
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("manse")}
+              className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 font-medium transition-colors ${
+                activeTab === "manse"
+                  ? "bg-white text-fuchsia-700 shadow-md"
+                  : "text-white/80 hover:bg-white/5"
+              }`}
+            >
+              만세력 보기
+            </button>
           </div>
-        )}
+
+          {activeTab === "input" && (
+            <div className="space-y-4">
+              <input
+                type="text"
+                className="w-full rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="이름을 입력하세요"
+              />
+              <DateTimePicker value={birthDate} onChange={setBirthDate} />
+              <input
+                type="time"
+                className="block w-full min-w-0 appearance-none rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                value={birthTime}
+                onChange={(e) => setBirthTime(e.target.value)}
+              />
+              <select
+                className="w-full rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+              >
+                <option value="">성별을 선택하세요</option>
+                <option value="남성">남성</option>
+                <option value="여성">여성</option>
+              </select>
+              <button
+                type="button"
+                onClick={handleManseLookup}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-fuchsia-500 via-rose-500 to-amber-400 py-2 font-medium text-white shadow-lg transition-colors hover:from-fuchsia-600 hover:via-rose-600 hover:to-amber-500 disabled:opacity-50"
+                disabled={manseLoading}
+              >
+                {manseLoading
+                  ? catMode
+                    ? "만세력 계산 중이다냥..."
+                    : "만세력 계산 중입니다..."
+                  : catMode
+                    ? "만세력 조회"
+                    : "만세력 조회"}
+              </button>
+            </div>
+          )}
+
+          {activeTab === "manse" && (
+            <div className="space-y-4 text-center">
+              {manse ? (
+                <>
+                  {renderManseProfile(
+                    manse,
+                    name,
+                    gender,
+                    birthDate,
+                    birthTime
+                  )}
+                  <ManseDisplay manse={manse} />
+                </>
+              ) : (
+                <div className="rounded-lg bg-white/10 p-4 text-sm text-white/80">
+                  {catMode
+                    ? "만세력을 보려면 생년월일시를 입력하고 조회 버튼을 눌러달라옹."
+                    : "생년월일시를 입력한 뒤 만세력 조회 버튼을 눌러주세요."}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
         {manse && !selectedResult && (
           <div className="space-y-3 rounded-2xl bg-white/20 p-4 shadow-2xl backdrop-blur-md ring-1 ring-white/30">
             <div className="flex rounded-xl bg-white/10 p-1 text-sm text-white/90 shadow-inner">
@@ -557,6 +688,13 @@ function HomeContent() {
               >
                 ← 뒤로가기
               </button>
+              {renderManseProfile(
+                selectedResult.manse,
+                selectedResult.name,
+                selectedResult.gender,
+                selectedResult.birthDate,
+                selectedResult.birthTime
+              )}
               <ManseDisplay manse={selectedResult.manse} />
               <div className="markdown leading-relaxed">
                 <ReactMarkdown remarkPlugins={[remarkSqueezeParagraphs]}>
