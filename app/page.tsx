@@ -165,6 +165,17 @@ function HomeContent() {
     }
   };
 
+  const handleUserDelete = (id: string) => {
+    setStoredUsers((prev) => {
+      const updated = prev.filter((user) => user.id !== id);
+      localStorage.setItem("sajuUsers", JSON.stringify(updated));
+      return updated;
+    });
+    if (selectedResult?.id === id) {
+      setSelectedResult(null);
+    }
+  };
+
   const handleUserSelect = (user: StoredUser) => {
     setName(user.name);
     setBirthDate(user.birthDate);
@@ -350,24 +361,42 @@ function HomeContent() {
                 const { colorClasses, animalEmoji } = getDayProfileVisuals(
                   user.manse.day
                 );
+                const genderIcon = user.gender === "여성" ? "♀" : "♂";
+                const genderColor = user.gender === "여성" ? "text-pink-300" : "text-sky-300";
                 return (
-                  <button
+                  <div
                     key={user.id}
-                    onClick={() => handleUserSelect(user)}
-                    className="flex shrink-0 flex-col items-center rounded-xl p-1 transition hover:bg-white/10"
-                    aria-label={`${user.name} 프로필 선택`}
+                    className="relative flex shrink-0 flex-col items-center"
                   >
-                    <span
-                      className={`flex h-14 w-14 items-center justify-center rounded-full text-2xl shadow-md ${
-                        colorClasses || "bg-white/30 text-gray-900"
-                      }`}
+                    <button
+                      onClick={() => handleUserSelect(user)}
+                      className="flex flex-col items-center rounded-xl p-1 transition hover:bg-white/10"
+                      aria-label={`${user.name} 프로필 선택`}
                     >
-                      {animalEmoji || "👤"}
-                    </span>
-                    <span className="mt-1 w-16 truncate text-center text-xs text-white/80">
-                      {user.name}
-                    </span>
-                  </button>
+                      <span
+                        className={`relative flex h-14 w-14 items-center justify-center rounded-full text-2xl shadow-md ${
+                          colorClasses || "bg-white/30 text-gray-900"
+                        }`}
+                      >
+                        {animalEmoji || "👤"}
+                      </span>
+                      <span className="mt-1 flex w-16 items-center justify-center gap-1 truncate text-center text-xs text-white/80">
+                        <span className="truncate">{user.name}</span>
+                        <span className={`${genderColor}`}>{genderIcon}</span>
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleUserDelete(user.id);
+                      }}
+                      className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-bold text-red-600 shadow-md ring-1 ring-red-300"
+                      aria-label={`${user.name} 프로필 삭제`}
+                    >
+                      ✕
+                    </button>
+                  </div>
                 );
               })}
             </div>
