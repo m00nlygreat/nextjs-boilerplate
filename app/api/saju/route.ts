@@ -6,8 +6,15 @@ export async function POST(req: Request) {
     const { searchParams } = new URL(req.url);
     const model = searchParams.get("model") || "gpt-5-mini";
     const search = searchParams.get("search") === "true";
-    const { birthInfo, catMode, question, inquiryType = "luck", luckCycles = [] } =
-      await req.json();
+    const {
+      birthInfo,
+      catMode,
+      question,
+      inquiryType = "luck",
+      luckCycles = [],
+      systemPrompt,
+      userPrompt,
+    } = await req.json();
     if (!birthInfo) {
       return NextResponse.json({ error: "Missing birthInfo" }, { status: 400 });
     }
@@ -30,9 +37,11 @@ export async function POST(req: Request) {
       : "";
 
     const userContent =
-      inquiryType === "question"
-        ? `${birthInfo}\n추가 질문: ${question || "추가 질문 없음"}`
-        : `${birthInfo}\n대운(10년) 정보:\n${formattedLuckCycles || "대운 정보 없음"}`;
+      typeof userPrompt === "string" && userPrompt.trim()
+        ? userPrompt.trim()
+        : inquiryType === "question"
+          ? `${birthInfo}\n추가 질문: ${question || "추가 질문 없음"}`
+          : `${birthInfo}\n대운(10년) 정보:\n${formattedLuckCycles || "대운 정보 없음"}`;
 
     const baseSystemPrompt =
       `당신은 전문 사주 명리학자입니다. 다음 사주 원국에 대해 ${
@@ -43,9 +52,11 @@ export async function POST(req: Request) {
         : "");
 
     const systemContent =
-      inquiryType === "question"
-        ? `${baseSystemPrompt} 추가 질문에 대해 답변을 마지막에 덧붙이세요. 마크다운 형식으로 답할 것. 답변은 이것으로 끝이므로 후속조치 등에 대한 안내는 하지 말 것`
-        : `${baseSystemPrompt} 마크다운 형식으로 답할 것. 답변은 이것으로 끝이므로 후속조치 등에 대한 안내는 하지 말 것. 제공된 대운 정보가 있다면 각 10년 운의 성향과 조언을 간략히 정리하는 섹션을 추가하세요.`;
+      typeof systemPrompt === "string" && systemPrompt.trim()
+        ? systemPrompt.trim()
+        : inquiryType === "question"
+          ? `${baseSystemPrompt} 추가 질문에 대해 답변을 마지막에 덧붙이세요. 마크다운 형식으로 답할 것. 답변은 이것으로 끝이므로 후속조치 등에 대한 안내는 하지 말 것`
+          : `${baseSystemPrompt} 마크다운 형식으로 답할 것. 답변은 이것으로 끝이므로 후속조치 등에 대한 안내는 하지 말 것. 제공된 대운 정보가 있다면 각 10년 운의 성향과 조언을 간략히 정리하는 섹션을 추가하세요.`;
 
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const messages = [

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, Suspense } from "react";
+import { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkSqueezeParagraphs from "remark-squeeze-paragraphs";
@@ -11,37 +11,109 @@ import CatRain from "@/app/components/CatRain";
 import { replaceMarkdownLinkText } from "@/lib/markdown";
 import { getDayProfileVisuals } from "@/lib/ganzhi";
 
+type LuckCycle = {
+  start_age: number;
+  start_date: string;
+  ganzhi: string;
+  ganzhi_kor: string;
+};
+
+type ManseResult = {
+  year: string;
+  month: string;
+  day: string;
+  hour: string;
+  cycles?: LuckCycle[];
+};
+
+type InquiryType = "luck" | "question";
+
+function buildSystemPrompt({
+  catMode,
+  inquiryType,
+  search,
+}: {
+  catMode: boolean;
+  inquiryType: InquiryType;
+  search: boolean;
+}) {
+  const baseSystemPrompt =
+    `당신은 전문 사주 명리학자입니다. 다음 사주 원국에 대해 ${
+      search ? "한국어로 웹 전반을 검색해보고 " : ""
+    }전반적 성격/직업/재물/연애/장점/단점/조언 등의 항목을 전문적으로 분석해주세요.` +
+    (catMode
+      ? `장난스럽고 애정 어린 말투로 모든 문장을 고양이가 말하는 것 같은 다음 말투들을 사용해 부드럽고 쉬운 말로 살살 설명해주세요. // 뭐 하고 있어? -> 뭐 하고 있냥~? 😺 안녕하세요.     안냥하냥~! 🐱✨ 잘 자. ->       잘 자라옹~ 꿈에서 만냐~ 🌙💤 지금 뭐 해? 지금 뭐 하는 거냥~? 궁금하다옹! 👀 뭘 도와줄까? -> 무엇을 도와줄까냐? ✨😸💕 자신있게 고백하는 거야 -> 자신있게 고백하는 고양😻 // 오행과 그에 어울리는 숲·바위·산 같은 자연 비유만 사용하고 다른 명리 용어는 쓰지 마.`
+      : "");
+
+  return inquiryType === "question"
+    ? `${baseSystemPrompt} 추가 질문에 대해 답변을 마지막에 덧붙이세요. 마크다운 형식으로 답할 것. 답변은 이것으로 끝이므로 후속조치 등에 대한 안내는 하지 말 것`
+    : `${baseSystemPrompt} 마크다운 형식으로 답할 것. 답변은 이것으로 끝이므로 후속조치 등에 대한 안내는 하지 말 것. 제공된 대운 정보가 있다면 각 10년 운의 성향과 조언을 간략히 정리하는 섹션을 추가하세요.`;
+}
+
+function buildUserPrompt({
+  manse,
+  gender,
+  inquiryType,
+  question,
+  luckCycles = [],
+}: {
+  manse: ManseResult | null;
+  gender: string;
+  inquiryType: InquiryType;
+  question: string;
+  luckCycles?: LuckCycle[];
+}) {
+  if (!manse) return "";
+
+  const formattedLuckCycles = Array.isArray(luckCycles)
+    ? luckCycles
+        .filter(
+          (cycle) =>
+            typeof cycle?.start_age === "number" &&
+            typeof cycle?.ganzhi === "string" &&
+            typeof cycle?.ganzhi_kor === "string"
+        )
+        .map(
+          (cycle) =>
+            `- ${cycle.start_age}세 시작 (${cycle.start_date || "시작일 미상"}): ${cycle.ganzhi} (${cycle.ganzhi_kor})`
+        )
+        .join("\n")
+    : "";
+
+  const birthInfo = `${manse.hour}시 ${manse.day}일 ${manse.month}월 ${manse.year}년, 성별: ${
+    gender || "미입력"
+  }`;
+
+  return inquiryType === "question"
+    ? `${birthInfo}\n추가 질문: ${question || "추가 질문 없음"}`
+    : `${birthInfo}\n대운(10년) 정보:\n${formattedLuckCycles || "대운 정보 없음"}`;
+}
+
 function HomeContent() {
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
   const [gender, setGender] = useState("");
-  type LuckCycle = {
-    start_age: number;
-    start_date: string;
-    ganzhi: string;
-    ganzhi_kor: string;
-  };
-
-  type ManseResult = {
-    year: string;
-    month: string;
-    day: string;
-    hour: string;
-    cycles?: LuckCycle[];
-  };
 
   const [manse, setManse] = useState<ManseResult | null>(null);
   const [manseSignature, setManseSignature] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"input" | "manse">("input");
+  const [activeTab, setActiveTab] = useState<"input" | "manse" | "debug">(
+    "input"
+  );
   const [manseLoading, setManseLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [catMode, setCatMode] = useState(false);
   const [extraQuestion, setExtraQuestion] = useState("");
-  const [inquiryType, setInquiryType] = useState<"luck" | "question">("luck");
+  const [inquiryType, setInquiryType] = useState<InquiryType>("luck");
   const reportRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
-  const model = searchParams.get("model") || "gpt-5-mini";
+  const debugMode = searchParams.get("debug") === "true";
+  const initialModel = searchParams.get("model") || "gpt-5-mini";
+  const [model, setModel] = useState(initialModel);
+  const [systemPrompt, setSystemPrompt] = useState("");
+  const [userPrompt, setUserPrompt] = useState("");
+  const [systemPromptDirty, setSystemPromptDirty] = useState(false);
+  const [userPromptDirty, setUserPromptDirty] = useState(false);
   const search = searchParams.get("search") === "true";
   interface StoredResult {
     id: string;
@@ -71,6 +143,23 @@ function HomeContent() {
   const [streamingReport, setStreamingReport] = useState("");
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  const defaultSystemPrompt = useMemo(
+    () => buildSystemPrompt({ catMode, inquiryType, search }),
+    [catMode, inquiryType, search]
+  );
+
+  const defaultUserPrompt = useMemo(
+    () =>
+      buildUserPrompt({
+        manse,
+        gender,
+        inquiryType,
+        question: extraQuestion,
+        luckCycles: manse?.cycles,
+      }),
+    [manse, gender, inquiryType, extraQuestion]
+  );
+
   useEffect(() => {
     const stored = localStorage.getItem("sajuResults");
     if (stored) {
@@ -91,6 +180,18 @@ function HomeContent() {
       setStoredUsers(JSON.parse(stored));
     }
   }, []);
+
+  useEffect(() => {
+    if (!systemPromptDirty) {
+      setSystemPrompt(defaultSystemPrompt);
+    }
+  }, [defaultSystemPrompt, systemPromptDirty]);
+
+  useEffect(() => {
+    if (!userPromptDirty) {
+      setUserPrompt(defaultUserPrompt);
+    }
+  }, [defaultUserPrompt, userPromptDirty]);
 
   useEffect(() => {
     const signature =
@@ -291,6 +392,8 @@ function HomeContent() {
     const url = `/api/saju?model=${encodeURIComponent(model)}${
       search ? "&search=true" : ""
     }`;
+    const finalSystemPrompt = systemPrompt.trim() || defaultSystemPrompt;
+    const finalUserPrompt = userPrompt.trim() || defaultUserPrompt;
     try {
       const res = await fetch(url, {
         method: "POST",
@@ -301,6 +404,8 @@ function HomeContent() {
           question: extraQuestion,
           inquiryType,
           luckCycles: inquiryType === "luck" ? manse.cycles : undefined,
+          systemPrompt: finalSystemPrompt,
+          userPrompt: finalUserPrompt,
         }),
         signal: controller.signal,
       });
@@ -500,6 +605,19 @@ function HomeContent() {
             >
               만세력 보기
             </button>
+            {debugMode && (
+              <button
+                type="button"
+                onClick={() => setActiveTab("debug")}
+                className={`flex flex-1 items-center justify-center rounded-lg px-3 py-2 font-medium transition-colors ${
+                  activeTab === "debug"
+                    ? "bg-white text-fuchsia-700 shadow-md"
+                    : "text-white/80 hover:bg-white/5"
+                }`}
+              >
+                디버그
+              </button>
+            )}
           </div>
 
           {activeTab === "input" && (
@@ -564,6 +682,86 @@ function HomeContent() {
                     : "생년월일시를 입력한 뒤 만세력 조회 버튼을 눌러주세요."}
                 </div>
               )}
+            </div>
+          )}
+          {activeTab === "debug" && debugMode && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="block text-left text-xs uppercase tracking-wide text-white/70">
+                  모델
+                </label>
+                <input
+                  type="text"
+                  list="model-options"
+                  className="w-full rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  placeholder="사용할 모델을 입력하거나 선택하세요"
+                />
+                <datalist id="model-options">
+                  <option value="gpt-4.1" />
+                  <option value="gpt-4.1-mini" />
+                  <option value="gpt-4o-mini" />
+                  <option value="gpt-4o" />
+                  <option value="gpt-3.5-turbo" />
+                  <option value="gpt-5-mini" />
+                </datalist>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs text-white/70">
+                  <label className="uppercase tracking-wide">시스템 프롬프트</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSystemPrompt(defaultSystemPrompt);
+                      setSystemPromptDirty(false);
+                    }}
+                    className="rounded-md bg-white/10 px-2 py-1 text-[11px] text-white hover:bg-white/20"
+                  >
+                    기본값으로 재설정
+                  </button>
+                </div>
+                <textarea
+                  className="min-h-[120px] w-full rounded-lg border-none bg-white/90 p-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                  value={systemPrompt}
+                  onChange={(e) => {
+                    setSystemPrompt(e.target.value);
+                    setSystemPromptDirty(true);
+                  }}
+                  placeholder="분석에 사용할 시스템 프롬프트"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs text-white/70">
+                  <label className="uppercase tracking-wide">유저 프롬프트</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUserPrompt(defaultUserPrompt);
+                      setUserPromptDirty(false);
+                    }}
+                    className="rounded-md bg-white/10 px-2 py-1 text-[11px] text-white hover:bg-white/20"
+                  >
+                    기본값으로 재설정
+                  </button>
+                </div>
+                <textarea
+                  className="min-h-[120px] w-full rounded-lg border-none bg-white/90 p-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                  value={userPrompt}
+                  onChange={(e) => {
+                    setUserPrompt(e.target.value);
+                    setUserPromptDirty(true);
+                  }}
+                  placeholder="만세력 조회결과를 기반으로 전송할 유저 프롬프트"
+                />
+                {!manse && (
+                  <p className="text-xs text-white/70">
+                    만세력 조회 후 자동으로 기본 프롬프트가 채워집니다.
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </div>
