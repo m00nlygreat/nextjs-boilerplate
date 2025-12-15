@@ -571,6 +571,9 @@ function HomeContent() {
                   const { colorClasses, animalEmoji } = getDayProfileVisuals(
                     r.manse.day
                   );
+                  const genderIcon = r.gender === "여성" ? "♀" : "♂";
+                  const genderColor =
+                    r.gender === "여성" ? "text-pink-300" : "text-sky-300";
                   return (
                     <div
                       key={r.id}
@@ -580,16 +583,17 @@ function HomeContent() {
                       }}
                       className="flex w-full items-center justify-between rounded-md bg-white/10 px-4 py-2 hover:bg-white/20 cursor-pointer"
                     >
-                      <div className="flex items-center gap-3 font-medium">
+                      <div className="flex items-center gap-2 font-medium">
                         <span
-                          className={`flex h-10 w-10 items-center justify-center rounded-full text-lg shadow ${
+                          className={`flex h-6 w-6 items-center justify-center rounded-full text-base shadow ${
                             colorClasses || "bg-white/30 text-gray-900"
                           }`}
                         >
                           {animalEmoji || "👤"}
                         </span>
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1 text-sm">
                           <span>{r.name}</span>
+                          <span className={`${genderColor}`}>{genderIcon}</span>
                           {r.catMode && <span aria-hidden>🐱</span>}
                         </span>
                       </div>
