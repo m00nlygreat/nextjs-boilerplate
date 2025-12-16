@@ -30,6 +30,9 @@ function HomeContent() {
   );
   const [manseLoading, setManseLoading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
+    "idle"
+  );
   const [catMode, setCatMode] = useState(false);
   const [extraQuestion, setExtraQuestion] = useState("");
   const [inquiryType, setInquiryType] = useState<InquiryType>("luck");
@@ -71,6 +74,7 @@ function HomeContent() {
   const [error, setError] = useState<string | null>(null);
   const [streamingReport, setStreamingReport] = useState("");
   const abortControllerRef = useRef<AbortController | null>(null);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const defaultSystemPrompt = useMemo(
     () => buildSystemPrompt({ catMode, inquiryType, search: searchEnabled }),
@@ -158,6 +162,22 @@ function HomeContent() {
     }
   }, [selectedResult]);
 
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    setCopyStatus("idle");
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = null;
+    }
+  }, [selectedResult]);
+
   const handleDelete = (id: string) => {
     setResults((prev) => {
       const updated = prev.filter((r) => r.id !== id);
@@ -190,6 +210,34 @@ function HomeContent() {
     setActiveTab("manse");
     setSelectedResult(null);
     setError(null);
+  };
+
+  const handleCopyResult = async (reportText: string) => {
+    if (!reportText) {
+      return;
+    }
+
+    if (!navigator.clipboard) {
+      setCopyStatus("error");
+      return;
+    }
+
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
+
+    try {
+      await navigator.clipboard.writeText(reportText);
+      setCopyStatus("copied");
+    } catch (err) {
+      console.error("Failed to copy result", err);
+      setCopyStatus("error");
+    }
+
+    copyTimeoutRef.current = setTimeout(() => {
+      setCopyStatus("idle");
+      copyTimeoutRef.current = null;
+    }, 2000);
   };
 
   const renderManseProfile = (
@@ -864,6 +912,33 @@ function HomeContent() {
                 <ReactMarkdown remarkPlugins={[remarkSqueezeParagraphs]}>
                   {selectedResult.report}
                 </ReactMarkdown>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => handleCopyResult(selectedResult.report)}
+                  className="mt-2 inline-flex items-center gap-2 rounded-md border border-white/40 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:border-white/70 hover:bg-white/10"
+                >
+                  <span>
+                    {copyStatus === "copied"
+                      ? catMode
+                        ? "복사 완료다냥!"
+                        : "복사 완료!"
+                      : copyStatus === "error"
+                        ? catMode
+                          ? "복사 실패다냥"
+                          : "복사 실패"
+                        : catMode
+                          ? "결과 복사하기다냥"
+                          : "결과 복사하기"}
+                  </span>
+                  <span aria-hidden>
+                    {copyStatus === "copied"
+                      ? "✅"
+                      : copyStatus === "error"
+                        ? "⚠️"
+                        : "📋"}
+                  </span>
+                </button>
               </div>
             </div>
           ) : (
