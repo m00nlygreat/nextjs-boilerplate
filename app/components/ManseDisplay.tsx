@@ -21,7 +21,7 @@ export default function ManseDisplay({ manse }: ManseDisplayProps) {
 
   return (
     <div className="space-y-2">
-      <div className="mx-auto inline-grid grid-cols-4 justify-items-center gap-2 text-gray-100">
+      <div className="mx-auto grid w-fit grid-cols-4 justify-items-center gap-2 text-gray-100">
         {parts.map((part) => {
           const stem = part.value.charAt(0);
           const branch = part.value.charAt(1);
