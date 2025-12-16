@@ -46,7 +46,10 @@ function HomeContent() {
   const [inquiryType, setInquiryType] = useState<InquiryType>("luck");
   const reportRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
-  const debugMode = searchParams.get("debug") === "true";
+  const debugParam = searchParams.get("debug");
+  const debugMode = debugParam
+    ? ["true", "1", "yes", "on"].includes(debugParam.toLowerCase())
+    : false;
   const initialModel = searchParams.get("model") || "gpt-5-mini";
   const initialSearchEnabled = searchParams.get("search") === "true";
   const [model, setModel] = useState(initialModel);
@@ -101,6 +104,12 @@ function HomeContent() {
       setStoredUsers(JSON.parse(stored));
     }
   }, []);
+
+  useEffect(() => {
+    if (debugMode) {
+      setActiveTab("debug");
+    }
+  }, [debugMode]);
   useEffect(() => {
     const signature =
       birthDate && birthTime && gender
