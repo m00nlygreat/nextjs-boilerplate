@@ -887,7 +887,7 @@ function HomeContent() {
                     >
                       <div className="flex items-center gap-2 font-medium">
                         <span
-                          className={`flex h-6 w-6 items-center justify-center rounded-full text-base shadow ${
+                          className={`flex h-6 w-6 items-center justify-center rounded-full text-xs shadow ${
                             colorClasses || "bg-white/30 text-gray-900"
                           }`}
                         >
@@ -896,10 +896,10 @@ function HomeContent() {
                         <span className="flex items-center gap-1 text-sm">
                           <span>{r.name}</span>
                           <span className={`${genderColor}`}>{genderIcon}</span>
-                          {r.catMode && <span aria-hidden>🐱</span>}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
+                        {r.catMode && <span aria-hidden>🐱</span>}
                         <div className="text-xs text-white/70">
                           {new Date(r.createdAt).toLocaleString()}
                         </div>
