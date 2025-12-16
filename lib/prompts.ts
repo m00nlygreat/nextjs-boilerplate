@@ -56,16 +56,13 @@ export function buildSystemPrompt({
     return systemPromptOverride.trim();
   }
 
-  const searchInstruction = search
-    ? "웹 검색 프리뷰 도구가 활성화되어 있으니 최신 정보를 보충할 때 활용하세요. "
-    : "";
   const baseSystemPrompt =
-    `당신은 전문 사주 명리학자입니다. ${searchInstruction}다음 사주 원국에 대해 ${search ? "한국어 웹 검색을 활용해 보충하며 " : ""}전반적 성격/직업/재물/연애/장점/단점/조언 등의 항목을 전문적으로 분석해주세요.` +
+    `당신은 전문 사주 명리학자입니다. 다음 사주 원국에 대해 전반적 성격/직업/재물/연애/장점/단점/조언 등의 항목을 전문적으로 분석하여 마크다운 형식으로 답하세요. ${search ? "필요한 경우 활성화되어 있는 웹 검색 도구를 사용해 각 간지에 대해 한국어 웹을 검색하여 내용을 보충하세요" : ""}` +
     (catMode ? CAT_MODE_INSTRUCTION : "");
 
   return inquiryType === "question"
-    ? `${baseSystemPrompt} 추가 질문에 대해 답변을 마지막에 덧붙이세요. 마크다운 형식으로 답할 것. 답변은 이것으로 끝이므로 후속조치 등에 대한 안내는 하지 말 것`
-    : `${baseSystemPrompt} 마크다운 형식으로 답할 것. 답변은 이것으로 끝이므로 후속조치 등에 대한 안내는 하지 말 것. 제공된 대운 정보가 있다면 각 10년 운의 성향과 조언을 간략히 정리하는 섹션을 추가하세요.`;
+    ? `${baseSystemPrompt} 추가 질문에 대해 답변을 마지막에 덧붙이세요. 답변은 이것으로 끝이므로 후속조치 등에 대한 안내는 하지 말 것`
+    : `${baseSystemPrompt} 제공된 대운 정보가 있다면 각 10년 운의 성향과 조언을 간략히 정리하는 섹션을 추가하세요. 답변은 이것으로 끝이므로 후속조치 등에 대한 안내는 하지 말 것.`;
 }
 
 function resolveBirthInfo({
@@ -113,5 +110,5 @@ export function buildUserPrompt({
 
   return inquiryType === "question"
     ? `${resolvedBirthInfo}\n추가 질문: ${question || "추가 질문 없음"}`
-    : `${resolvedBirthInfo}\n대운(10년) 정보:\n${formattedLuckCycles || "대운 정보 없음"}`;
+    : `${resolvedBirthInfo}\n대운(10년):\n${formattedLuckCycles || "대운 정보 없음"}`;
 }
