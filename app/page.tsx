@@ -76,6 +76,36 @@ function HomeContent() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const catTexts = useMemo(
+    () => ({
+      extraQuestionPlaceholder: catMode
+        ? "추가로 궁금한게 있으면 적어보라옹😽"
+        : "혹시 추가로 궁금한 게 있으면 적어보세요",
+      luckDescription: catMode
+        ? "10년마다 바뀌는 대운 흐름을 분석해서 운세 코멘트를 덧붙일게!"
+        : "10년 단위 대운 흐름을 분석해 운세 코멘트를 추가로 제공해요.",
+      analyzeButtonLabel: loading
+        ? catMode
+          ? "분석중이다냐~ 기다리라옹 😹"
+          : "분석 중...조금 시간이 걸립니다"
+        : catMode
+          ? "분석시작한다냥😽"
+          : "분석 시작",
+      streamingStatus: catMode
+        ? "실시간으로 분석중이다냥..."
+        : "실시간으로 분석 중입니다.",
+      cancelLabel: catMode ? "취소" : "중단",
+      stopRequestError: catMode ? "요청을 멈췄다냥." : "요청을 취소했습니다.",
+      requestError: catMode
+        ? "문제가 생겼냥. 다시 시도해달라옹."
+        : "요청 중 오류가 발생했습니다.",
+      copyCompleted: catMode ? "복사 완료다냥!" : "복사 완료!",
+      copyFailed: catMode ? "복사 실패다냥" : "복사 실패",
+      copyPrompt: catMode ? "결과 복사하기다냥" : "결과 복사하기",
+    }),
+    [catMode, loading]
+  );
+
   const defaultSystemPrompt = useMemo(
     () => buildSystemPrompt({ catMode, inquiryType, search: searchEnabled }),
     [catMode, inquiryType, searchEnabled]
@@ -483,12 +513,10 @@ function HomeContent() {
       setSelectedResult(newResult);
     } catch (err: any) {
       if (controller.signal.aborted) {
-        setError(catMode ? "요청을 멈췄다냥." : "요청을 취소했습니다.");
+        setError(catTexts.stopRequestError);
       } else {
         console.error("API 요청 중 오류", err);
-        setError(
-          catMode ? "문제가 생겼냥. 다시 시도해달라옹." : "요청 중 오류가 발생했습니다."
-        );
+        setError(catTexts.requestError);
       }
     } finally {
       setLoading(false);
@@ -819,17 +847,11 @@ function HomeContent() {
                 className="w-full rounded-lg border-none bg-white/90 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
                 value={extraQuestion}
                 onChange={(e) => setExtraQuestion(e.target.value)}
-                placeholder={
-                  catMode
-                    ? "추가로 궁금한게 있으면 적어보라옹😽"
-                    : "혹시 추가로 궁금한 게 있으면 적어보세요"
-                }
+                placeholder={catTexts.extraQuestionPlaceholder}
               />
             ) : (
               <div className="rounded-lg bg-white/10 p-3 text-sm text-white/80">
-                {catMode
-                  ? "10년마다 바뀌는 대운 흐름을 분석해서 운세 코멘트를 덧붙일게!"
-                  : "10년 단위 대운 흐름을 분석해 운세 코멘트를 추가로 제공해요."}
+                {catTexts.luckDescription}
               </div>
             )}
           </div>
@@ -862,7 +884,7 @@ function HomeContent() {
             className="flex-1 rounded-lg bg-gradient-to-r from-fuchsia-500 via-rose-500 to-amber-400 py-2 font-medium text-white shadow-lg transition-colors hover:from-fuchsia-600 hover:via-rose-600 hover:to-amber-500 disabled:opacity-50"
             disabled={!manse || !name || loading}
           >
-            {loading ? (catMode ? "분석중이다냐~ 기다리라옹 😹" : "분석 중...조금 시간이 걸립니다") : (catMode ? "분석시작한다냥😽" : "분석 시작")}
+            {catTexts.analyzeButtonLabel}
           </button>
         </div>
         {error && (
@@ -873,12 +895,12 @@ function HomeContent() {
         {loading && (
           <div className="space-y-3 rounded-2xl bg-white/10 p-4 shadow-lg ring-1 ring-white/20" aria-live="polite">
             <div className="flex items-center justify-between text-sm text-white/80">
-              <span>{catMode ? "실시간으로 분석중이다냥..." : "실시간으로 분석 중입니다."}</span>
+              <span>{catTexts.streamingStatus}</span>
               <button
                 onClick={handleCancel}
                 className="rounded-md border border-white/30 px-2 py-1 text-xs hover:border-white/60"
               >
-                {catMode ? "취소" : "중단"}
+                {catTexts.cancelLabel}
               </button>
             </div>
               <div className="markdown leading-relaxed">
@@ -920,16 +942,10 @@ function HomeContent() {
                 >
                   <span>
                     {copyStatus === "copied"
-                      ? catMode
-                        ? "복사 완료다냥!"
-                        : "복사 완료!"
+                      ? catTexts.copyCompleted
                       : copyStatus === "error"
-                        ? catMode
-                          ? "복사 실패다냥"
-                          : "복사 실패"
-                        : catMode
-                          ? "결과 복사하기다냥"
-                          : "결과 복사하기"}
+                        ? catTexts.copyFailed
+                        : catTexts.copyPrompt}
                   </span>
                   <span aria-hidden>
                     {copyStatus === "copied"
