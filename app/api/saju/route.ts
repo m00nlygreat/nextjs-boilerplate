@@ -94,6 +94,18 @@ export async function POST(req: Request) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({
+                type: "debug.prompts",
+                systemPrompt: systemContent,
+                userPrompt: userContent,
+                model,
+                search,
+              })}\n\n`
+            )
+          );
+
           for await (const event of response as any) {
             const payload = JSON.stringify(event);
             controller.enqueue(encoder.encode(`data: ${payload}\n\n`));

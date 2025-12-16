@@ -82,6 +82,15 @@ function HomeContent() {
   const [storedUsers, setStoredUsers] = useState<StoredUser[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [streamingReport, setStreamingReport] = useState("");
+  const [requestDebugInfo, setRequestDebugInfo] = useState<
+    | {
+        systemPrompt: string;
+        userPrompt: string;
+        model: string;
+        search: boolean;
+      }
+    | null
+  >(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -301,6 +310,7 @@ function HomeContent() {
     setError(null);
     setLoading(true);
     setStreamingReport("");
+    setRequestDebugInfo(null);
     abortControllerRef.current?.abort();
     const controller = new AbortController();
     abortControllerRef.current = controller;
@@ -367,7 +377,18 @@ function HomeContent() {
           if (!data || data === "[DONE]") return;
           try {
             const parsed = JSON.parse(data);
-            if (parsed.type === "response.output_text.delta" && parsed.delta) {
+            if (parsed.type === "debug.prompts") {
+              setRequestDebugInfo({
+                systemPrompt: String(parsed.systemPrompt ?? ""),
+                userPrompt: String(parsed.userPrompt ?? ""),
+                model: String(parsed.model ?? model),
+                search: Boolean(parsed.search),
+              });
+              parsedAny = true;
+            } else if (
+              parsed.type === "response.output_text.delta" &&
+              parsed.delta
+            ) {
               appendText(parsed.delta as string);
               parsedAny = true;
             } else if (parsed.type === "response.output_text.done" && parsed.output_text) {
@@ -603,6 +624,56 @@ function HomeContent() {
           )}
           {activeTab === "debug" && debugMode && (
             <div className="space-y-4">
+              <div className="space-y-2 rounded-lg bg-white/10 px-4 py-3 text-sm text-white/80 ring-1 ring-white/20">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs uppercase tracking-wide text-white/70">API 요청 정보</p>
+                  {requestDebugInfo ? (
+                    <span className="rounded-full bg-white/10 px-2 py-1 text-[11px] text-white">
+                      최신 조립본
+                    </span>
+                  ) : (
+                    <span className="text-[11px] text-white/50">분석 시작 시 자동 표시</span>
+                  )}
+                </div>
+                {requestDebugInfo ? (
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="rounded-full bg-white/20 px-2 py-1 font-semibold text-white">
+                        모델: {requestDebugInfo.model}
+                      </span>
+                      <span
+                        className={`rounded-full px-2 py-1 font-semibold ${
+                          requestDebugInfo.search
+                            ? "bg-emerald-500/30 text-emerald-50"
+                            : "bg-white/20 text-white"
+                        }`}
+                      >
+                        검색 도구 {requestDebugInfo.search ? "ON" : "OFF"}
+                      </span>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[11px] text-white/60">조립된 시스템 프롬프트</p>
+                      <textarea
+                        readOnly
+                        className="min-h-[120px] w-full rounded-lg border-none bg-white/90 p-3 text-sm text-gray-800"
+                        value={requestDebugInfo.systemPrompt}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[11px] text-white/60">조립된 유저 프롬프트</p>
+                      <textarea
+                        readOnly
+                        className="min-h-[120px] w-full rounded-lg border-none bg-white/90 p-3 text-sm text-gray-800"
+                        value={requestDebugInfo.userPrompt}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[11px] leading-relaxed text-white/60">
+                    분석 시작 버튼을 누르면 API가 조립한 시스템/유저 프롬프트와 모델, 검색 여부가 자동으로 여기 표시됩니다.
+                  </p>
+                )}
+              </div>
               <div className="space-y-1 rounded-lg bg-white/10 px-4 py-3 text-sm text-white/80 ring-1 ring-white/20">
                 <div className="flex items-center justify-between">
                   <div>
