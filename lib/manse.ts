@@ -428,7 +428,7 @@ function luckCyclesInfo(
   };
 }
 
-function manseCalc(y: number, m: number, d: number, hh: number, mm: number, tz: number, lon: number, useLmt = false) {
+function manseCalc(y: number, m: number, d: number, hh: number, mm: number, tz: number, lon: number, useLmt = true) {
   const JDutc = gregorianToJd(y, m, d, hh - tz, mm, 0);
   const gzYear = yearPillar(JDutc, y);
   const lam = sunEclipticLongitudeDeg(JDutc);
@@ -548,7 +548,8 @@ function parseRequestParams(url: URL) {
   const timeParam = url.searchParams.get('time') || '12:00';
   const tz = Number(url.searchParams.get('tz') ?? '9');
   const lon = Number(url.searchParams.get('lon') ?? '126.98');
-  const useLmt = ['true', '1', 'yes'].includes((url.searchParams.get('lmt') || '').toLowerCase());
+  const lmtParam = url.searchParams.get('lmt');
+  const useLmt = lmtParam === null ? true : ['true', '1', 'yes'].includes(lmtParam.toLowerCase());
   const cycle = Number(url.searchParams.get('cycle') ?? '10');
   const maleFlag = url.searchParams.get('male');
   const femaleFlag = url.searchParams.get('female');
